@@ -1,11 +1,10 @@
-
 /**
  * booking.service.ts
  * Booking logic: simple create and list.
  * Production: add overlap checks, waitlist, SMS/email confirmation.
  */
 
-import prisma from '../config/db.config';
+import prisma from "../config/db.config";
 
 class BookingService {
   static async create(data: any) {
@@ -15,7 +14,10 @@ class BookingService {
   }
 
   static async listByBranch(branchId: string) {
-    return prisma.booking.findMany({ where: { branchId }, orderBy: { startTime: 'desc' }});
+    return prisma.booking.findMany({
+      where: { branchId },
+      orderBy: { startTime: "desc" },
+    });
   }
 }
 

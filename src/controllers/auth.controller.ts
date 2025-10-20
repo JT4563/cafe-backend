@@ -1,11 +1,10 @@
-
 /**
  * auth.controller.ts
  * Minimal auth controller - for production you must add rate limiting, account lockouts, MFA.
  */
 
-import { Request, Response, NextFunction } from 'express';
-import AuthService from '../services/auth.service';
+import { Request, Response, NextFunction } from "express";
+import AuthService from "../services/auth.service";
 
 class AuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
@@ -13,7 +12,9 @@ class AuthController {
       const { email, password } = req.body;
       const result = await AuthService.login(email, password);
       res.json(result);
-    } catch (err) { next(err); }
+    } catch (err) {
+      next(err);
+    }
   }
 
   static async refresh(req: Request, res: Response, next: NextFunction) {
@@ -21,7 +22,9 @@ class AuthController {
       const { refreshToken } = req.body;
       const result = await AuthService.refreshToken(refreshToken);
       res.json(result);
-    } catch (err) { next(err); }
+    } catch (err) {
+      next(err);
+    }
   }
 }
 
