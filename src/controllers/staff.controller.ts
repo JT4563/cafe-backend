@@ -7,7 +7,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { successResponse } from "../utils/response.util";
-import * as StaffService from "../services/staff.service";
+import StaffService from "../services/staff.service";
 
 /**
  * Get all staff members
@@ -52,8 +52,8 @@ export const getStaffById = async (
   next: NextFunction
 ) => {
   try {
-    const { staffId } = req.params;
-    const staff = await StaffService.getStaffById(staffId);
+    const { tenantId, staffId } = req.params;
+    const staff = await StaffService.getStaffById(staffId, tenantId);
     return successResponse(res, staff, "Staff fetched");
   } catch (error) {
     next(error);
@@ -69,8 +69,8 @@ export const updateStaff = async (
   next: NextFunction
 ) => {
   try {
-    const { staffId } = req.params;
-    const staff = await StaffService.updateStaff(staffId, req.body);
+    const { tenantId, staffId } = req.params;
+    const staff = await StaffService.updateStaff(staffId, tenantId, req.body);
     return successResponse(res, staff, "Staff updated");
   } catch (error) {
     next(error);
@@ -78,17 +78,17 @@ export const updateStaff = async (
 };
 
 /**
- * Delete staff
+ * Deactivate staff
  */
-export const deleteStaff = async (
+export const deactivateStaff = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { staffId } = req.params;
-    await StaffService.deleteStaff(staffId);
-    return successResponse(res, null, "Staff deleted");
+    const { tenantId, staffId } = req.params;
+    const staff = await StaffService.deactivateStaff(staffId, tenantId);
+    return successResponse(res, staff, "Staff deactivated");
   } catch (error) {
     next(error);
   }
@@ -103,10 +103,27 @@ export const assignRole = async (
   next: NextFunction
 ) => {
   try {
-    const { staffId } = req.params;
+    const { tenantId, staffId } = req.params;
     const { role } = req.body;
-    const staff = await StaffService.assignRole(staffId, role);
+    const staff = await StaffService.assignRole(staffId, tenantId, role);
     return successResponse(res, staff, "Role assigned");
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get staff by branch
+ */
+export const getStaffByBranch = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { tenantId, branchId } = req.params;
+    const staff = await StaffService.getStaffByBranch(tenantId, branchId);
+    return successResponse(res, staff, "Branch staff fetched");
   } catch (error) {
     next(error);
   }

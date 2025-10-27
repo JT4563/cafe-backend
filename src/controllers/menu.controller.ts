@@ -7,7 +7,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { successResponse } from "../utils/response.util";
-import * as MenuService from "../services/menu.service";
+import MenuService from "../services/menu.service";
 
 /**
  * Get all menu items
@@ -19,10 +19,11 @@ export const getAllMenuItems = async (
 ) => {
   try {
     const { tenantId } = req.params;
-    const { category } = req.query;
+    const { category, branchId } = req.query;
     const items = await MenuService.getAllMenuItems(
       tenantId,
-      category as string | undefined
+      category as string | undefined,
+      branchId as string | undefined
     );
     return successResponse(res, items, "Menu items fetched");
   } catch (error) {
@@ -40,7 +41,12 @@ export const createMenuItem = async (
 ) => {
   try {
     const { tenantId } = req.params;
-    const item = await MenuService.createMenuItem(tenantId, req.body);
+    const { branchId } = req.query;
+    const item = await MenuService.createMenuItem(
+      tenantId,
+      req.body,
+      branchId as string | undefined
+    );
     return successResponse(res, item, "Menu item created", 201);
   } catch (error) {
     next(error);
@@ -56,8 +62,8 @@ export const getMenuItemById = async (
   next: NextFunction
 ) => {
   try {
-    const { itemId } = req.params;
-    const item = await MenuService.getMenuItemById(itemId);
+    const { tenantId, itemId } = req.params;
+    const item = await MenuService.getMenuItemById(itemId, tenantId);
     return successResponse(res, item, "Menu item fetched");
   } catch (error) {
     next(error);
@@ -73,8 +79,8 @@ export const updateMenuItem = async (
   next: NextFunction
 ) => {
   try {
-    const { itemId } = req.params;
-    const item = await MenuService.updateMenuItem(itemId, req.body);
+    const { tenantId, itemId } = req.params;
+    const item = await MenuService.updateMenuItem(itemId, tenantId, req.body);
     return successResponse(res, item, "Menu item updated");
   } catch (error) {
     next(error);
@@ -82,17 +88,17 @@ export const updateMenuItem = async (
 };
 
 /**
- * Delete menu item
+ * Deactivate menu item
  */
-export const deleteMenuItem = async (
+export const deactivateMenuItem = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { itemId } = req.params;
-    await MenuService.deleteMenuItem(itemId);
-    return successResponse(res, null, "Menu item deleted");
+    const { tenantId, itemId } = req.params;
+    const item = await MenuService.deactivateMenuItem(itemId, tenantId);
+    return successResponse(res, item, "Menu item deactivated");
   } catch (error) {
     next(error);
   }
@@ -110,6 +116,23 @@ export const getMenuCategories = async (
     const { tenantId } = req.params;
     const categories = await MenuService.getMenuCategories(tenantId);
     return successResponse(res, categories, "Menu categories fetched");
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get menu items by category
+ */
+export const getMenuItemsByCategory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { tenantId, category } = req.params;
+    const items = await MenuService.getMenuItemsByCategory(tenantId, category);
+    return successResponse(res, items, "Category items fetched");
   } catch (error) {
     next(error);
   }
