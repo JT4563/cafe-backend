@@ -34,7 +34,7 @@ class OrderService {
 
     // create KOT
     const kot = await prisma.kOT.create({
-      data: { orderId: order.id, branchId, payload: { items } },
+      data: { orderId: order.id, tenantId, branchId, payload: { items } },
     });
 
     // enqueue print job to printers queue

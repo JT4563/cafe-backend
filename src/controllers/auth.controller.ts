@@ -10,7 +10,7 @@ class AuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
     try {
       const { email, password } = req.body;
-      const result = await AuthService.login(email, password);
+      const result = await AuthService.login({ email, password });
       res.json(result);
     } catch (err) {
       next(err);

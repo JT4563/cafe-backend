@@ -10,11 +10,21 @@ datasource db {
 
 model Tenant {
   id         String   @id @default(cuid())
-  name       String
+  name       String   @unique
   domain     String?  @unique
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  isActive   Boolean  @default(true)
+
   branches   Branch[]
   users      User[]
+  products   Product[]
+  bookings   Booking[]
+  orders     Order[]
+  stockItems StockItem[]
+  stockMovements StockMovement[]
+  bulkImports BulkImportJob[]
+  auditLogs  AuditLog[]
 }
 
 model Branch {
@@ -22,25 +32,40 @@ model Branch {
   tenantId  String
   name      String
   address   String?
+  phone     String?
+  email     String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   tables    Table[]
+  bookings  Booking[]
   orders    Order[]
+  users     User[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
 }
 
 model User {
   id        String   @id @default(cuid())
   tenantId  String
   branchId  String?
-  email     String   @unique
+  email     String
   name      String?
   password  String
   role      Role     @default(STAFF)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLogin DateTime?
 
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  branch    Branch?  @relation(fields: [branchId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch    Branch?  @relation(fields: [branchId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@index([branchId])
 }
 
 enum Role {
@@ -59,11 +84,16 @@ model Table {
   name      String
   capacity  Int
   zone      String?
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  branch    Branch   @relation(fields: [branchId], references: [id])
+  branch    Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   bookings  Booking[]
   orders    Order[]
+
+  @@unique([branchId, name])
+  @@index([branchId])
 }
 
 model Booking {
@@ -72,16 +102,24 @@ model Booking {
   branchId    String
   tableId     String?
   customerName String?
+  customerPhone String?
   partySize   Int
   startTime   DateTime
   endTime     DateTime
   status      BookingStatus @default(PENDING)
-  deposit     Float? 
+  deposit     Float?
+  notes       String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  table       Table?   @relation(fields: [tableId], references: [id])
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  table       Table?   @relation(fields: [tableId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([branchId])
+  @@index([tableId])
+  @@index([status])
 }
 
 enum BookingStatus {
@@ -96,31 +134,49 @@ model Product {
   id          String   @id @default(cuid())
   tenantId    String
   branchId    String?
-  sku         String? 
+  sku         String?
   name        String
+  description String?
+  category    String?
   price       Float
+  costPrice   Float?
   isInventoryTracked Boolean @default(true)
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  recipes     Recipe[]
+  orderItems  OrderItem[]
+  stockItems  StockItem[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId])
 }
 
 model Recipe {
   id        String   @id @default(cuid())
-  productId String
-  // list of ingredients stored externally as RecipeIngredient model
+  productId String   @unique
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   ingredients RecipeIngredient[]
+
+  @@index([productId])
 }
 
 model RecipeIngredient {
-  id          String @id @default(cuid())
+  id          String   @id @default(cuid())
   recipeId    String
   ingredientProductId String
   quantity    Float
-  recipe      Recipe @relation(fields: [recipeId], references: [id])
+  unit        String   @default("piece")
+  createdAt   DateTime @default(now())
+
+  recipe      Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId])
 }
 
 model StockItem {
@@ -129,10 +185,16 @@ model StockItem {
   branchId  String?
   productId String
   qty       Float
+  minQty    Float    @default(10)
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
-  product   Product @relation(fields: [productId], references: [id])
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, productId])
+  @@index([tenantId])
+  @@index([productId])
 }
 
 model StockMovement {
@@ -142,7 +204,15 @@ model StockMovement {
   productId  String
   type       MovementType
   qty        Float
+  reference  String?  // Invoice/PO reference
+  notes      String?
   createdAt  DateTime @default(now())
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([productId])
+  @@index([type])
 }
 
 enum MovementType {
@@ -159,10 +229,24 @@ model Order {
   tableId    String?
   userId     String?
   total      Float
+  tax        Float    @default(0)
+  discount   Float    @default(0)
   status     OrderStatus @default(PENDING)
+  notes      String?
   createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  completedAt DateTime?
 
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch     Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  table      Table?   @relation(fields: [tableId], references: [id], onDelete: SetNull)
   items      OrderItem[]
+  invoices   Invoice[]
+
+  @@index([tenantId])
+  @@index([branchId])
+  @@index([tableId])
+  @@index([status])
 }
 
 enum OrderStatus {
@@ -178,7 +262,16 @@ model OrderItem {
   productId  String
   qty        Int
   price      Float
+  specialRequest String?
   status     OrderItemStatus @default(PENDING)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 enum OrderItemStatus {
@@ -191,38 +284,102 @@ enum OrderItemStatus {
 }
 
 model KOT {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   orderId   String
   branchId  String
+  tenantId  String
   payload   Json
-  printed   Boolean @default(false)
+  printed   Boolean  @default(false)
+  printedAt DateTime?
   createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@index([branchId])
+  @@index([tenantId])
+  @@index([printed])
 }
 
 model Invoice {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   orderId   String
   tenantId  String
+  invoiceNumber String @unique
   amount    Float
+  tax       Float    @default(0)
+  discount  Float    @default(0)
+  status    InvoiceStatus @default(DRAFT)
+  dueDate   DateTime?
+  paidAt    DateTime?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payments  Payment[]
+
+  @@unique([tenantId, invoiceNumber])
+  @@index([tenantId])
+  @@index([status])
+  @@index([orderId])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PAID
+  OVERDUE
+  CANCELLED
 }
 
 model Payment {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   invoiceId String
-  method    String
+  tenantId  String
+  method    PaymentMethod
   amount    Float
-  status    String
+  status    PaymentStatus
+  reference String?  // Transaction reference
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([tenantId])
+  @@index([status])
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  BANK_TRANSFER
+  WALLET
+  CHEQUE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
 }
 
 model BulkImportJob {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   tenantId  String
   filename  String
   status    ImportStatus @default(PENDING)
-  errors    Int     @default(0)
+  errors    Int      @default(0)
+  successCount Int    @default(0)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  completedAt DateTime?
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
 }
 
 enum ImportStatus {
@@ -233,10 +390,20 @@ enum ImportStatus {
 }
 
 model AuditLog {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   tenantId  String?
   userId    String?
   action    String
-  payload   Json?
+  resource  String?
+  oldValues Json?
+  newValues Json?
+  ipAddress String?
   createdAt DateTime @default(now())
+
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }
