@@ -13,13 +13,26 @@ import * as InventoryService from "../services/inventory.service";
  * Get all inventory items
  */
 export const getInventoryItems = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { tenantId } = req.params;
-    const items = await InventoryService.getInventoryItems(tenantId);
+    const tenantId = req.user?.tenantId;
+    const branchId = req.query.branchId as string | undefined;
+    const page = req.query.page ? parseInt(req.query.page) : 1;
+    const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+
+    if (!tenantId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const items = await InventoryService.getInventoryItems(
+      tenantId,
+      branchId,
+      page,
+      limit
+    );
     return successResponse(res, items, "Inventory items fetched");
   } catch (error) {
     next(error);
@@ -30,13 +43,21 @@ export const getInventoryItems = async (
  * Create inventory item
  */
 export const createInventoryItem = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { tenantId } = req.params;
-    const item = await InventoryService.createInventoryItem(tenantId, req.body);
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const item = await InventoryService.createInventoryItem({
+      ...req.body,
+      tenantId,
+    });
     return successResponse(res, item, "Inventory item created", 201);
   } catch (error) {
     next(error);
@@ -47,13 +68,23 @@ export const createInventoryItem = async (
  * Update inventory item
  */
 export const updateInventoryItem = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { itemId } = req.params;
-    const item = await InventoryService.updateInventoryItem(itemId, req.body);
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const item = await InventoryService.updateInventoryItem(
+      itemId,
+      tenantId,
+      req.body
+    );
     return successResponse(res, item, "Inventory item updated");
   } catch (error) {
     next(error);
@@ -64,13 +95,19 @@ export const updateInventoryItem = async (
  * Delete inventory item
  */
 export const deleteInventoryItem = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { itemId } = req.params;
-    await InventoryService.deleteInventoryItem(itemId);
+    const tenantId = req.user?.tenantId;
+
+    if (!tenantId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    await InventoryService.deleteInventoryItem(itemId, tenantId);
     return successResponse(res, null, "Inventory item deleted");
   } catch (error) {
     next(error);
@@ -81,13 +118,22 @@ export const deleteInventoryItem = async (
  * Get low stock items
  */
 export const getLowStockItems = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { tenantId } = req.params;
-    const items = await InventoryService.getLowStockItems(tenantId);
+    const tenantId = req.user?.tenantId;
+    const branchId = req.query.branchId as string | undefined;
+
+    if (!tenantId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const items = await InventoryService.getLowStockItemsOptimized(
+      tenantId,
+      branchId
+    );
     return successResponse(res, items, "Low stock items fetched");
   } catch (error) {
     next(error);

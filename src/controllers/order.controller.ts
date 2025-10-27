@@ -28,7 +28,8 @@ class OrderController {
 
   static async getOrder(req: Request & any, res: Response, next: NextFunction) {
     try {
-      const order = await OrderService.getOrder(req.params.id);
+      const tenantId = req.user?.tenantId;
+      const order = await OrderService.getOrder(req.params.id, tenantId);
       res.json(order);
     } catch (err) {
       next(err);

@@ -4,17 +4,25 @@
  */
 
 import { Router } from "express";
-import * as ReportController from "../controllers/report.controller";
+import {
+  getSalesReport,
+  getInventoryReport,
+  getStaffPerformanceReport,
+  getPaymentReport,
+  exportSalesData,
+  getDashboardSummary,
+} from "../controllers/report.controller";
 import authMiddleware from "../middlewares/auth.middleware";
 
 const router = Router();
 
 router.use(authMiddleware);
 
-router.get("/sales/:tenantId", ReportController.getSalesReport);
-router.get("/inventory/:tenantId", ReportController.getInventoryReport);
-router.get("/staff/:tenantId", ReportController.getStaffPerformanceReport);
-router.post("/export/sales/:tenantId", ReportController.exportSalesData);
-router.post("/custom/:tenantId", ReportController.getCustomReport);
+router.get("/sales/:tenantId", getSalesReport);
+router.get("/inventory/:tenantId", getInventoryReport);
+router.get("/staff/:tenantId", getStaffPerformanceReport);
+router.get("/payment/:tenantId", getPaymentReport);
+router.get("/dashboard/:tenantId", getDashboardSummary);
+router.post("/export/sales/:tenantId", exportSalesData);
 
 export default router;
