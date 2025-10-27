@@ -29,7 +29,20 @@ class BookingController {
   ) {
     try {
       const { branchId } = req.params;
-      const list = await BookingService.listByBranch(branchId);
+      const tenantId = req.user?.tenantId;
+      const page = req.query.page ? parseInt(req.query.page) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit) : 20;
+
+      if (!tenantId) {
+        throw new Error("Tenant ID is required");
+      }
+
+      const list = await BookingService.listByBranch(
+        branchId,
+        tenantId,
+        page,
+        limit
+      );
       res.json(list);
     } catch (err) {
       next(err);

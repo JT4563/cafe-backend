@@ -1,6 +1,8 @@
 # Services Validation Report - Phase 2
+
 ## Tenant, KOT, Inventory, Dashboard, Booking Services
-**Date:** October 27, 2025  
+
+**Date:** October 27, 2025
 **Status:** 🔍 COMPREHENSIVE AUDIT IN PROGRESS
 
 ---
@@ -8,6 +10,7 @@
 ## 📋 Executive Summary
 
 This report validates 5 remaining services against Prisma schema compliance, production-ready patterns, and security standards:
+
 1. ✅ **tenant.service.ts** - Tenant/Branch lifecycle management
 2. ⚠️ **kot.service.ts** - Kitchen Order Ticket orchestration (STUB)
 3. ⚠️ **inventory.service.ts** - Stock management (STUB)
@@ -23,15 +26,17 @@ This report validates 5 remaining services against Prisma schema compliance, pro
 **File:** `src/services/tenant.service.ts` (183 lines)
 
 #### Model Coverage:
-| Model | Fields | Usage | Status |
-|-------|--------|-------|--------|
+
+| Model  | Fields                                           | Usage                               | Status  |
+| ------ | ------------------------------------------------ | ----------------------------------- | ------- |
 | Tenant | id, name, domain, isActive, createdAt, updatedAt | ✅ CREATE, READ, UPDATE, DEACTIVATE | ✅ FULL |
-| Branch | id, tenantId, name, address, phone, email | ✅ CREATE, READ with counts | ✅ FULL |
-| User | tenantId, email, password, role | ✅ CREATE with hashing | ✅ FULL |
+| Branch | id, tenantId, name, address, phone, email        | ✅ CREATE, READ with counts         | ✅ FULL |
+| User   | tenantId, email, password, role                  | ✅ CREATE with hashing              | ✅ FULL |
 
 #### Line-by-Line Analysis:
 
 **Method: `createTenant()` (Lines 20-95)**
+
 ```typescript
 // ✅ Input Validation
 - Checks name, email, password required (Line 27-29)
@@ -50,7 +55,9 @@ This report validates 5 remaining services against Prisma schema compliance, pro
 // ✅ Logging
 - Logs tenant creation with ID (Line 75)
 ```
+
 **Fields Used:** ✅ ALL correct
+
 - `tenant.name` (unique check) → Prisma: @@unique → ✅
 - `tenant.domain` (optional) → Prisma: String? → ✅
 - `tenant.isActive` (default true) → Prisma: @default(true) → ✅
@@ -60,6 +67,7 @@ This report validates 5 remaining services against Prisma schema compliance, pro
 **Validation Gaps:** NONE - All required fields present
 
 **Transaction Pattern:** ✅ CORRECT
+
 - Uses `await prisma.$transaction(async (tx) => {...})`
 - All operations use `tx.*` context
 - Returns single value from transaction
@@ -68,6 +76,7 @@ This report validates 5 remaining services against Prisma schema compliance, pro
 ---
 
 **Method: `getTenant()` (Lines 100-116)**
+
 ```typescript
 // ✅ Relationships
 - Includes branches with full data
@@ -82,11 +91,13 @@ This report validates 5 remaining services against Prisma schema compliance, pro
 - Throws if not found (Line 110)
 - Logs errors (Line 113)
 ```
+
 **Validation:** ✅ CORRECT
 
 ---
 
 **Method: `updateTenant()` (Lines 121-133)**
+
 ```typescript
 // ✅ Safe Updates
 - Only updates name and domain (Line 125-127)
@@ -96,11 +107,13 @@ This report validates 5 remaining services against Prisma schema compliance, pro
 // ✅ Logging
 - Logs update with tenant ID (Line 129)
 ```
+
 **Validation:** ✅ CORRECT
 
 ---
 
 **Method: `createBranch()` (Lines 138-162)**
+
 ```typescript
 // ✅ Validation
 - Checks tenant exists before creating branch (Line 145-148)
@@ -114,11 +127,13 @@ This report validates 5 remaining services against Prisma schema compliance, pro
 - Includes tenantId (Line 151)
 - Uses tenant reference correctly
 ```
+
 **Validation:** ✅ CORRECT
 
 ---
 
 **Method: `getBranches()` (Lines 167-177)**
+
 ```typescript
 // ✅ Aggregation
 - Uses _count to get tables and users count
@@ -127,35 +142,39 @@ This report validates 5 remaining services against Prisma schema compliance, pro
 // ✅ Pagination
 - Could use skip/take but acceptable for list
 ```
+
 **Validation:** ✅ CORRECT
 
 ---
 
 **Method: `deactivateTenant()` (Lines 182-194)**
+
 ```typescript
 // ✅ Soft Delete Pattern
 - Sets isActive: false (Line 187)
 - Preserves data for audit (Line 188)
 - Logs deactivation (Line 190)
 ```
+
 **Validation:** ✅ CORRECT
 
 ---
 
 #### Security Audit: ✅ PASSED
 
-| Check | Status | Details |
-|-------|--------|---------|
-| Multi-tenant isolation | ✅ | Creates separate records, tenantId enforced |
-| Password handling | ✅ | bcrypt(10), never logged, hashed before storage |
-| Input validation | ✅ | All required fields validated |
-| SQL injection | ✅ | Prisma parameterized queries |
-| Transaction safety | ✅ | Atomic operations with rollback |
-| Error exposure | ✅ | Errors logged, not exposed to client |
+| Check                  | Status | Details                                         |
+| ---------------------- | ------ | ----------------------------------------------- |
+| Multi-tenant isolation | ✅     | Creates separate records, tenantId enforced     |
+| Password handling      | ✅     | bcrypt(10), never logged, hashed before storage |
+| Input validation       | ✅     | All required fields validated                   |
+| SQL injection          | ✅     | Prisma parameterized queries                    |
+| Transaction safety     | ✅     | Atomic operations with rollback                 |
+| Error exposure         | ✅     | Errors logged, not exposed to client            |
 
 #### Production Readiness: ✅ READY
 
 **Verdict:** `tenant.service.ts` is **PRODUCTION READY** ✅
+
 - ✅ 100% schema compliance
 - ✅ All CRUD operations complete
 - ✅ Atomic transactions for consistency
@@ -172,13 +191,15 @@ This report validates 5 remaining services against Prisma schema compliance, pro
 **File:** `src/services/kot.service.ts` (15 lines)
 
 #### Model Coverage:
-| Model | Fields | Usage | Status |
-|-------|--------|-------|--------|
-| KOT | id, orderId, branchId, tenantId, payload, printed, printedAt | ⚠️ READ ONLY | ⚠️ INCOMPLETE |
+
+| Model | Fields                                                       | Usage        | Status        |
+| ----- | ------------------------------------------------------------ | ------------ | ------------- |
+| KOT   | id, orderId, branchId, tenantId, payload, printed, printedAt | ⚠️ READ ONLY | ⚠️ INCOMPLETE |
 
 #### Issues Found:
 
 **Critical Issue 1: No Validation** 🔴
+
 ```typescript
 // Current (Line 9):
 static async listByBranch(branchId: string) {
@@ -196,6 +217,7 @@ static async listByBranch(branchId: string) {
 ```
 
 **Critical Issue 2: Missing KOT Creation** 🔴
+
 ```typescript
 // ❌ Missing method:
 // KOT creation happens in order.service.ts
@@ -207,6 +229,7 @@ static async listByBranch(branchId: string) {
 ```
 
 **Critical Issue 3: Incomplete Print Logic** 🔴
+
 ```typescript
 // Current (Line 14-16):
 static async printKOT(kotId: string, tenantId: string) {
@@ -282,7 +305,7 @@ static async markPrinted(kotId: string, tenantId: string) {
 static async listByBranch(branchId: string, tenantId: string) {  // ✅ ADD tenantId
   try {
     return await prisma.kOT.findMany({
-      where: { 
+      where: {
         branchId,
         tenantId  // ✅ SECURITY: Filter by tenant
       },
@@ -313,8 +336,8 @@ static async printKOT(kotId: string, tenantId: string) {
 
     // Add to print queue
     const q = getQueue("printers");
-    await q.add("print-kot", { 
-      kotId, 
+    await q.add("print-kot", {
+      kotId,
       tenantId,
       orderId: kot.orderId,
       branchId: kot.branchId,
@@ -336,6 +359,7 @@ static async printKOT(kotId: string, tenantId: string) {
 #### Current Status:
 
 **Verdict:** `kot.service.ts` is **NOT PRODUCTION READY** ⚠️
+
 - ⚠️ 50% schema coverage (READ only, no CREATE)
 - ⚠️ **CRITICAL SECURITY ISSUE**: Missing tenantId filter in listByBranch
 - ⚠️ Missing validation on all methods
@@ -343,7 +367,8 @@ static async printKOT(kotId: string, tenantId: string) {
 - ⚠️ Print logic incomplete (doesn't update printed/printedAt)
 - ⚠️ No include relationships for reference data
 
-**Required Fixes:** 
+**Required Fixes:**
+
 1. ❌ Add tenantId parameter to all methods
 2. ❌ Implement getKOTById with validation
 3. ❌ Implement markPrinted to update flags
@@ -359,20 +384,22 @@ static async printKOT(kotId: string, tenantId: string) {
 **File:** `src/services/inventory.service.ts` (60 lines)
 
 #### Model Coverage:
-| Model | Fields | Usage | Status |
-|-------|--------|-------|--------|
-| StockItem | id, tenantId, branchId, productId, qty, minQty, updatedAt | ❌ NONE | ❌ STUB |
-| StockMovement | id, tenantId, branchId, productId, type, qty, reference | ❌ NONE | ❌ STUB |
+
+| Model         | Fields                                                    | Usage   | Status  |
+| ------------- | --------------------------------------------------------- | ------- | ------- |
+| StockItem     | id, tenantId, branchId, productId, qty, minQty, updatedAt | ❌ NONE | ❌ STUB |
+| StockMovement | id, tenantId, branchId, productId, type, qty, reference   | ❌ NONE | ❌ STUB |
 
 #### Issues Found:
 
 **Critical Issue 1: No Database Integration** 🔴
+
 ```typescript
 // Lines 11-15 (getInventoryItems):
 export async function getInventoryItems(tenantId: string) {
   try {
     logger.info(`Fetching inventory items for tenant ${tenantId}`);
-    return [];  // ❌ Returns empty array, NO database query
+    return []; // ❌ Returns empty array, NO database query
   } catch (error) {
     logger.error("Error fetching inventory items:", error);
     throw error;
@@ -387,12 +414,13 @@ export async function getInventoryItems(tenantId: string) {
 ```
 
 **Critical Issue 2: No Persistence** 🔴
+
 ```typescript
 // Lines 20-28 (createInventoryItem):
 export async function createInventoryItem(tenantId: string, itemData: any) {
   try {
     logger.info(`Creating inventory item for tenant ${tenantId}`);
-    return { id: "inv_" + Date.now(), tenantId, ...itemData };  // ❌ Fake data
+    return { id: "inv_" + Date.now(), tenantId, ...itemData }; // ❌ Fake data
   } catch (error) {
     logger.error("Error creating inventory item:", error);
     throw error;
@@ -407,6 +435,7 @@ export async function createInventoryItem(tenantId: string, itemData: any) {
 ```
 
 **Critical Issue 3: Placeholder Methods** 🔴
+
 ```typescript
 // Lines 30-55:
 // updateInventoryItem() - returns fake updated data
@@ -423,7 +452,7 @@ export async function createInventoryItem(tenantId: string, itemData: any) {
  * Get all stock items for tenant (with optional branch filter)
  */
 export async function getInventoryItems(
-  tenantId: string, 
+  tenantId: string,
   branchId?: string,
   page = 1,
   limit = 20
@@ -435,7 +464,7 @@ export async function getInventoryItems(
       prisma.stockItem.findMany({
         where: {
           tenantId,
-          ...(branchId && { branchId })
+          ...(branchId && { branchId }),
         },
         include: {
           product: {
@@ -444,23 +473,25 @@ export async function getInventoryItems(
               name: true,
               sku: true,
               price: true,
-              costPrice: true
-            }
-          }
+              costPrice: true,
+            },
+          },
         },
         skip,
         take: limit,
-        orderBy: { updatedAt: "desc" }
+        orderBy: { updatedAt: "desc" },
       }),
       prisma.stockItem.count({
         where: {
           tenantId,
-          ...(branchId && { branchId })
-        }
-      })
+          ...(branchId && { branchId }),
+        },
+      }),
     ]);
 
-    logger.info(`Fetched ${items.length} inventory items for tenant ${tenantId}`);
+    logger.info(
+      `Fetched ${items.length} inventory items for tenant ${tenantId}`
+    );
     return { items, total, page, limit };
   } catch (error) {
     logger.error("Error fetching inventory items:", error);
@@ -483,7 +514,7 @@ export async function createInventoryItem(
   try {
     // Validate product exists
     const product = await prisma.product.findUnique({
-      where: { id: itemData.productId }
+      where: { id: itemData.productId },
     });
 
     if (!product) {
@@ -500,9 +531,9 @@ export async function createInventoryItem(
       where: {
         tenantId_productId: {
           tenantId,
-          productId: itemData.productId
-        }
-      }
+          productId: itemData.productId,
+        },
+      },
     });
 
     if (existing) {
@@ -515,9 +546,9 @@ export async function createInventoryItem(
         productId: itemData.productId,
         branchId: itemData.branchId,
         qty: itemData.qty,
-        minQty: itemData.minQty || 10
+        minQty: itemData.minQty || 10,
       },
-      include: { product: true }
+      include: { product: true },
     });
 
     logger.info(`Stock item created: ${stockItem.id}`);
@@ -541,7 +572,7 @@ export async function updateInventoryItem(
 ) {
   try {
     const item = await prisma.stockItem.findUnique({
-      where: { id: itemId }
+      where: { id: itemId },
     });
 
     if (!item) {
@@ -557,9 +588,10 @@ export async function updateInventoryItem(
       where: { id: itemId },
       data: {
         qty: updateData.qty !== undefined ? updateData.qty : item.qty,
-        minQty: updateData.minQty !== undefined ? updateData.minQty : item.minQty
+        minQty:
+          updateData.minQty !== undefined ? updateData.minQty : item.minQty,
       },
-      include: { product: true }
+      include: { product: true },
     });
 
     logger.info(`Stock item updated: ${itemId}`);
@@ -580,14 +612,14 @@ export async function recordStockMovement(
     productId: string;
     type: "PURCHASE" | "CONSUMPTION" | "WASTAGE" | "ADJUSTMENT";
     qty: number;
-    reference?: string;  // Invoice/PO number
+    reference?: string; // Invoice/PO number
     notes?: string;
   }
 ) {
   try {
     // Validate product exists and belongs to tenant
     const product = await prisma.product.findUnique({
-      where: { id: movementData.productId }
+      where: { id: movementData.productId },
     });
 
     if (!product || product.tenantId !== tenantId) {
@@ -603,28 +635,27 @@ export async function recordStockMovement(
         type: movementData.type,
         qty: movementData.qty,
         reference: movementData.reference,
-        notes: movementData.notes
-      }
+        notes: movementData.notes,
+      },
     });
 
     // Update stock item if exists
     const stockItem = await prisma.stockItem.findFirst({
       where: {
         tenantId,
-        productId: movementData.productId
-      }
+        productId: movementData.productId,
+      },
     });
 
     if (stockItem) {
-      const qtyDelta = movementData.type === "PURCHASE" 
-        ? movementData.qty 
-        : -movementData.qty;
+      const qtyDelta =
+        movementData.type === "PURCHASE" ? movementData.qty : -movementData.qty;
 
       await prisma.stockItem.update({
         where: { id: stockItem.id },
         data: {
-          qty: { increment: qtyDelta }
-        }
+          qty: { increment: qtyDelta },
+        },
       });
     }
 
@@ -646,19 +677,19 @@ export async function getLowStockItems(tenantId: string, branchId?: string) {
         tenantId,
         ...(branchId && { branchId }),
         qty: {
-          lt: prisma.stockItem.fields.minQty  // qty < minQty
-        }
+          lt: prisma.stockItem.fields.minQty, // qty < minQty
+        },
       },
       include: {
         product: {
           select: {
             name: true,
             sku: true,
-            price: true
-          }
-        }
+            price: true,
+          },
+        },
       },
-      orderBy: { qty: "asc" }
+      orderBy: { qty: "asc" },
     });
 
     logger.info(`Found ${lowStockItems.length} low stock items`);
@@ -677,18 +708,18 @@ export async function getInventoryValue(tenantId: string, branchId?: string) {
     const items = await prisma.stockItem.findMany({
       where: {
         tenantId,
-        ...(branchId && { branchId })
+        ...(branchId && { branchId }),
       },
       include: {
         product: {
-          select: { costPrice: true }
-        }
-      }
+          select: { costPrice: true },
+        },
+      },
     });
 
     const totalValue = items.reduce((sum, item) => {
       const costPrice = item.product.costPrice || 0;
-      return sum + (item.qty * costPrice);
+      return sum + item.qty * costPrice;
     }, 0);
 
     logger.info(`Inventory value for tenant ${tenantId}: ${totalValue}`);
@@ -703,6 +734,7 @@ export async function getInventoryValue(tenantId: string, branchId?: string) {
 #### Current Status:
 
 **Verdict:** `inventory.service.ts` is **NOT PRODUCTION READY** ❌
+
 - ❌ 0% schema implementation (complete stub)
 - ❌ No Prisma queries at all
 - ❌ No database persistence
@@ -711,6 +743,7 @@ export async function getInventoryValue(tenantId: string, branchId?: string) {
 - ❌ Missing StockMovement tracking
 
 **Required Fixes:**
+
 1. ❌ Implement full CRUD with Prisma queries
 2. ❌ Add StockItem operations (create, read, update)
 3. ❌ Add StockMovement tracking (PURCHASE, CONSUMPTION, WASTAGE, ADJUSTMENT)
@@ -729,16 +762,17 @@ export async function getInventoryValue(tenantId: string, branchId?: string) {
 #### Issues Found:
 
 **Critical Issue 1: No Database Queries** 🔴
+
 ```typescript
 // Lines 11-20 (getDashboardOverview):
 export async function getDashboardOverview(tenantId: string) {
   try {
     logger.info(`Fetching dashboard overview for tenant ${tenantId}`);
     return {
-      totalOrders: 0,      // ❌ Hardcoded
-      totalRevenue: 0,     // ❌ Hardcoded
-      totalCustomers: 0,   // ❌ Hardcoded
-      todayOrders: 0,      // ❌ Hardcoded
+      totalOrders: 0, // ❌ Hardcoded
+      totalRevenue: 0, // ❌ Hardcoded
+      totalCustomers: 0, // ❌ Hardcoded
+      todayOrders: 0, // ❌ Hardcoded
     };
   } catch (error) {
     logger.error("Error fetching dashboard overview:", error);
@@ -754,6 +788,7 @@ export async function getDashboardOverview(tenantId: string) {
 ```
 
 **Critical Issue 2: Empty Analytics** 🔴
+
 ```typescript
 // Lines 25-35 (getSalesAnalytics):
 export async function getSalesAnalytics(
@@ -765,7 +800,7 @@ export async function getSalesAnalytics(
     logger.info(
       `Fetching sales analytics for tenant ${tenantId} from ${startDate} to ${endDate}`
     );
-    return { sales: [], total: 0, startDate, endDate };  // ❌ Empty array
+    return { sales: [], total: 0, startDate, endDate }; // ❌ Empty array
   } catch (error) {
     logger.error("Error fetching sales analytics:", error);
     throw error;
@@ -779,12 +814,13 @@ export async function getSalesAnalytics(
 ```
 
 **Critical Issue 3: Missing Revenue Logic** 🔴
+
 ```typescript
 // Lines 40-49 (getRevenueCharts):
 export async function getRevenueCharts(tenantId: string) {
   try {
     logger.info(`Fetching revenue charts for tenant ${tenantId}`);
-    return { daily: [], weekly: [], monthly: [] };  // ❌ Empty arrays
+    return { daily: [], weekly: [], monthly: [] }; // ❌ Empty arrays
   } catch (error) {
     logger.error("Error fetching revenue charts:", error);
     throw error;
@@ -798,12 +834,13 @@ export async function getRevenueCharts(tenantId: string) {
 ```
 
 **Critical Issue 4: Placeholder Top Products** 🔴
+
 ```typescript
 // Lines 54-63 (getTopProducts):
 export async function getTopProducts(tenantId: string, limit: number) {
   try {
     logger.info(`Fetching top ${limit} products for tenant ${tenantId}`);
-    return [];  // ❌ Empty array
+    return []; // ❌ Empty array
   } catch (error) {
     logger.error("Error fetching top products:", error);
     throw error;
@@ -832,36 +869,37 @@ export async function getDashboardOverview(tenantId: string) {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     // Parallel queries for metrics
-    const [orders, todayOrders, totalRevenue, totalCustomers] = await Promise.all([
-      // Total orders all time
-      prisma.order.count({
-        where: { tenantId }
-      }),
+    const [orders, todayOrders, totalRevenue, totalCustomers] =
+      await Promise.all([
+        // Total orders all time
+        prisma.order.count({
+          where: { tenantId },
+        }),
 
-      // Today's orders
-      prisma.order.count({
-        where: {
-          tenantId,
-          createdAt: {
-            gte: today,
-            lt: tomorrow
-          }
-        }
-      }),
+        // Today's orders
+        prisma.order.count({
+          where: {
+            tenantId,
+            createdAt: {
+              gte: today,
+              lt: tomorrow,
+            },
+          },
+        }),
 
-      // Total revenue
-      prisma.order.aggregate({
-        where: { tenantId },
-        _sum: { total: true }
-      }),
+        // Total revenue
+        prisma.order.aggregate({
+          where: { tenantId },
+          _sum: { total: true },
+        }),
 
-      // Unique customers (from invoices)
-      prisma.invoice.findMany({
-        where: { tenantId },
-        select: { orderId: true },
-        distinct: ["orderId"]
-      })
-    ]);
+        // Unique customers (from invoices)
+        prisma.invoice.findMany({
+          where: { tenantId },
+          select: { orderId: true },
+          distinct: ["orderId"],
+        }),
+      ]);
 
     logger.info(`Dashboard overview fetched for tenant ${tenantId}`);
 
@@ -870,7 +908,7 @@ export async function getDashboardOverview(tenantId: string) {
       totalRevenue: totalRevenue._sum?.total || 0,
       totalCustomers: totalCustomers.length,
       todayOrders,
-      currency: "USD"
+      currency: "USD",
     };
   } catch (error) {
     logger.error("Error fetching dashboard overview:", error);
@@ -904,19 +942,22 @@ export async function getSalesAnalytics(
         tenantId,
         createdAt: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
       include: {
         items: true,
-        invoices: true
+        invoices: true,
       },
-      orderBy: { createdAt: "desc" }
+      orderBy: { createdAt: "desc" },
     });
 
     const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
     const totalTax = orders.reduce((sum, order) => sum + order.tax, 0);
-    const totalDiscount = orders.reduce((sum, order) => sum + order.discount, 0);
+    const totalDiscount = orders.reduce(
+      (sum, order) => sum + order.discount,
+      0
+    );
     const averageOrder = orders.length > 0 ? totalRevenue / orders.length : 0;
 
     logger.info(
@@ -924,11 +965,11 @@ export async function getSalesAnalytics(
     );
 
     return {
-      orders: orders.map(o => ({
+      orders: orders.map((o) => ({
         id: o.id,
         date: o.createdAt,
         amount: o.total,
-        items: o.items.length
+        items: o.items.length,
       })),
       total: orders.length,
       totalRevenue,
@@ -936,7 +977,7 @@ export async function getSalesAnalytics(
       totalDiscount,
       averageOrder,
       startDate: startDateStr,
-      endDate: endDateStr
+      endDate: endDateStr,
     };
   } catch (error) {
     logger.error("Error fetching sales analytics:", error);
@@ -958,52 +999,54 @@ export async function getRevenueCharts(tenantId: string) {
         tenantId,
         createdAt: {
           gte: thirtyDaysAgo,
-          lte: today
-        }
+          lte: today,
+        },
       },
       select: {
         total: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
 
     // Group by date
     const dailyMap = new Map<string, number>();
-    orders.forEach(order => {
-      const date = order.createdAt.toISOString().split('T')[0];
+    orders.forEach((order) => {
+      const date = order.createdAt.toISOString().split("T")[0];
       dailyMap.set(date, (dailyMap.get(date) || 0) + order.total);
     });
 
     const daily = Array.from(dailyMap.entries()).map(([date, revenue]) => ({
       date,
-      revenue
+      revenue,
     }));
 
     // Group by week (last 12 weeks)
     const weeklyMap = new Map<string, number>();
-    orders.forEach(order => {
+    orders.forEach((order) => {
       const weekStart = new Date(order.createdAt);
       weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      const weekKey = weekStart.toISOString().split('T')[0];
+      const weekKey = weekStart.toISOString().split("T")[0];
       weeklyMap.set(weekKey, (weeklyMap.get(weekKey) || 0) + order.total);
     });
 
     const weekly = Array.from(weeklyMap.entries()).map(([week, revenue]) => ({
       week,
-      revenue
+      revenue,
     }));
 
     // Group by month (last 12 months)
     const monthlyMap = new Map<string, number>();
-    orders.forEach(order => {
+    orders.forEach((order) => {
       const monthKey = order.createdAt.toISOString().substring(0, 7);
       monthlyMap.set(monthKey, (monthlyMap.get(monthKey) || 0) + order.total);
     });
 
-    const monthly = Array.from(monthlyMap.entries()).map(([month, revenue]) => ({
-      month,
-      revenue
-    }));
+    const monthly = Array.from(monthlyMap.entries()).map(
+      ([month, revenue]) => ({
+        month,
+        revenue,
+      })
+    );
 
     logger.info(`Revenue charts fetched for tenant ${tenantId}`);
 
@@ -1021,30 +1064,33 @@ export async function getTopProducts(tenantId: string, limit = 10) {
   try {
     const orderItems = await prisma.orderItem.findMany({
       where: {
-        order: { tenantId }
+        order: { tenantId },
       },
       include: {
         product: true,
-        order: true
-      }
+        order: true,
+      },
     });
 
     // Group by product and sum quantities
-    const productSales = new Map<string, {
-      name: string;
-      totalQty: number;
-      totalRevenue: number;
-      sku: string;
-    }>();
+    const productSales = new Map<
+      string,
+      {
+        name: string;
+        totalQty: number;
+        totalRevenue: number;
+        sku: string;
+      }
+    >();
 
-    orderItems.forEach(item => {
+    orderItems.forEach((item) => {
       const key = item.productId;
       if (!productSales.has(key)) {
         productSales.set(key, {
           name: item.product.name,
           totalQty: 0,
           totalRevenue: 0,
-          sku: item.product.sku || ''
+          sku: item.product.sku || "",
         });
       }
       const sales = productSales.get(key)!;
@@ -1073,27 +1119,30 @@ export async function getStaffPerformance(tenantId: string) {
   try {
     const orders = await prisma.order.findMany({
       where: { tenantId },
-      include: { branch: true }
+      include: { branch: true },
     });
 
     // Group by branch
-    const staffMetrics = new Map<string, {
-      branchId: string;
-      branchName: string;
-      totalOrders: number;
-      totalRevenue: number;
-      averageOrder: number;
-    }>();
+    const staffMetrics = new Map<
+      string,
+      {
+        branchId: string;
+        branchName: string;
+        totalOrders: number;
+        totalRevenue: number;
+        averageOrder: number;
+      }
+    >();
 
-    orders.forEach(order => {
+    orders.forEach((order) => {
       const key = order.branchId;
       if (!staffMetrics.has(key)) {
         staffMetrics.set(key, {
           branchId: order.branchId,
-          branchName: order.branch?.name || 'Unknown',
+          branchName: order.branch?.name || "Unknown",
           totalOrders: 0,
           totalRevenue: 0,
-          averageOrder: 0
+          averageOrder: 0,
         });
       }
       const metrics = staffMetrics.get(key)!;
@@ -1102,10 +1151,11 @@ export async function getStaffPerformance(tenantId: string) {
     });
 
     // Calculate averages
-    staffMetrics.forEach(metrics => {
-      metrics.averageOrder = metrics.totalOrders > 0
-        ? metrics.totalRevenue / metrics.totalOrders
-        : 0;
+    staffMetrics.forEach((metrics) => {
+      metrics.averageOrder =
+        metrics.totalOrders > 0
+          ? metrics.totalRevenue / metrics.totalOrders
+          : 0;
     });
 
     logger.info(`Staff performance metrics fetched for tenant ${tenantId}`);
@@ -1121,6 +1171,7 @@ export async function getStaffPerformance(tenantId: string) {
 #### Current Status:
 
 **Verdict:** `dashboard.service.ts` is **NOT PRODUCTION READY** ❌
+
 - ❌ 0% implementation (complete stub)
 - ❌ No Prisma queries
 - ❌ No aggregations or calculations
@@ -1129,6 +1180,7 @@ export async function getStaffPerformance(tenantId: string) {
 - ❌ No multi-tenant isolation
 
 **Required Fixes:**
+
 1. ❌ Implement Order aggregations (count, sum total)
 2. ❌ Implement date range filtering with proper validation
 3. ❌ Add revenue calculations (total, tax, discount)
@@ -1145,15 +1197,17 @@ export async function getStaffPerformance(tenantId: string) {
 **File:** `src/services/booking.service.ts` (260 lines)
 
 #### Model Coverage:
-| Model | Fields | Usage | Status |
-|-------|--------|-------|--------|
+
+| Model   | Fields        | Usage                          | Status  |
+| ------- | ------------- | ------------------------------ | ------- |
 | Booking | All 10 fields | ✅ CREATE, READ, UPDATE status | ✅ FULL |
-| Table | id, capacity | ✅ Validation, availability | ✅ FULL |
-| Branch | id | ✅ Filtering | ✅ FULL |
+| Table   | id, capacity  | ✅ Validation, availability    | ✅ FULL |
+| Branch  | id            | ✅ Filtering                   | ✅ FULL |
 
 #### Line-by-Line Analysis:
 
 **Method: `createBooking()` (Lines 24-95)**
+
 ```typescript
 // ✅ Input Validation
 - Checks startTime < endTime (Line 28-30)
@@ -1187,6 +1241,7 @@ export async function getStaffPerformance(tenantId: string) {
 **Validation Gaps:** NONE
 
 **Time Conflict Logic:** ✅ CORRECT
+
 ```typescript
 // Correct overlap detection:
 startTime: { lt: bookingData.endTime },        // existing.start < new.end
@@ -1197,6 +1252,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ---
 
 **Method: `getBookingById()` (Lines 100-117)**
+
 ```typescript
 // ✅ Proper include
 - Includes table with full data
@@ -1208,6 +1264,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ---
 
 **Method: `getBookingsByBranch()` (Lines 122-145)**
+
 ```typescript
 // ✅ Pagination
 - Correct skip calculation: (page - 1) * limit ✅
@@ -1225,6 +1282,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ---
 
 **Method: `confirmBooking()` (Lines 150-163)**
+
 ```typescript
 // ✅ Status update
 - Updates to CONFIRMED (Line 155)
@@ -1234,6 +1292,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ---
 
 **Method: `cancelBooking()` (Lines 168-181)**
+
 ```typescript
 // ✅ Cancellation with reason
 - Sets status to CANCELLED
@@ -1244,6 +1303,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ---
 
 **Method: `completeBooking()` (Lines 186-199)**
+
 ```typescript
 // ✅ Lifecycle completion
 - Sets status to COMPLETED
@@ -1253,6 +1313,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ---
 
 **Method: `checkTableAvailability()` (Lines 204-220)**
+
 ```typescript
 // ✅ Availability check logic
 - Uses same overlap detection as createBooking
@@ -1263,6 +1324,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ---
 
 **Method: `getAvailableTables()` (Lines 225-247)**
+
 ```typescript
 // ✅ Complex query for available tables
 - Filters by branchId ✅
@@ -1278,6 +1340,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ---
 
 **Method: Aliases (Lines 252-263)**
+
 ```typescript
 // ✅ create() and listByBranch() aliases
 - Provide convenient method names
@@ -1288,19 +1351,20 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 
 #### Security Audit: ✅ PASSED
 
-| Check | Status | Details |
-|-------|--------|---------|
-| Multi-tenant isolation | ✅ | tenantId in all operations |
-| Authorization | ✅ | Branch/table ownership verified |
-| Input validation | ✅ | Dates, capacity, conflicts checked |
-| Time logic | ✅ | Correct overlap detection |
-| Soft delete | ✅ | Uses status CANCELLED instead |
-| Error handling | ✅ | Try-catch on all methods |
-| SQL injection | ✅ | Prisma parameterized queries |
+| Check                  | Status | Details                            |
+| ---------------------- | ------ | ---------------------------------- |
+| Multi-tenant isolation | ✅     | tenantId in all operations         |
+| Authorization          | ✅     | Branch/table ownership verified    |
+| Input validation       | ✅     | Dates, capacity, conflicts checked |
+| Time logic             | ✅     | Correct overlap detection          |
+| Soft delete            | ✅     | Uses status CANCELLED instead      |
+| Error handling         | ✅     | Try-catch on all methods           |
+| SQL injection          | ✅     | Prisma parameterized queries       |
 
 #### Production Readiness: ✅ READY
 
 **Verdict:** `booking.service.ts` is **PRODUCTION READY** ✅
+
 - ✅ 100% schema compliance
 - ✅ Complete lifecycle management (PENDING → CONFIRMED/CANCELLED → COMPLETED)
 - ✅ Robust conflict detection with correct time logic
@@ -1314,30 +1378,33 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 
 ## 📊 Summary Matrix
 
-| Service | Implementation | Schema Compliance | Production Ready | Issues |
-|---------|-----------------|-------------------|------------------|--------|
-| **tenant** | ✅ FULL | ✅ 100% | ✅ YES | 0 |
-| **kot** | ⚠️ STUB | ⚠️ 50% | ⚠️ NO | 3 CRITICAL |
-| **inventory** | ⚠️ STUB | ❌ 0% | ❌ NO | 4 CRITICAL |
-| **dashboard** | ⚠️ STUB | ❌ 0% | ❌ NO | 4 CRITICAL |
-| **booking** | ✅ FULL | ✅ 100% | ✅ YES | 0 |
+| Service       | Implementation | Schema Compliance | Production Ready | Issues     |
+| ------------- | -------------- | ----------------- | ---------------- | ---------- |
+| **tenant**    | ✅ FULL        | ✅ 100%           | ✅ YES           | 0          |
+| **kot**       | ⚠️ STUB        | ⚠️ 50%            | ⚠️ NO            | 3 CRITICAL |
+| **inventory** | ⚠️ STUB        | ❌ 0%             | ❌ NO            | 4 CRITICAL |
+| **dashboard** | ⚠️ STUB        | ❌ 0%             | ❌ NO            | 4 CRITICAL |
+| **booking**   | ✅ FULL        | ✅ 100%           | ✅ YES           | 0          |
 
 ---
 
 ## 🔴 Critical Issues Summary
 
 ### KOT Service (3 Critical Issues)
+
 1. **SECURITY**: Missing tenantId filter in listByBranch - allows cross-tenant data leak
 2. **INCOMPLETE**: Print logic doesn't update printed/printedAt flags
 3. **MISSING**: No validation on KOT ownership
 
 ### Inventory Service (4 Critical Issues)
+
 1. **NO DB**: Complete stub - no Prisma queries
 2. **NO PERSISTENCE**: Fake data returned
 3. **MISSING**: StockMovement tracking
 4. **MISSING**: Multi-tenant isolation
 
 ### Dashboard Service (4 Critical Issues)
+
 1. **NO DB**: Complete stub - no Prisma queries
 2. **NO LOGIC**: All methods return hardcoded/empty data
 3. **NO AGGREGATIONS**: No date grouping or calculations
@@ -1348,6 +1415,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ## ✅ Production Ready Services
 
 ### Tenant Service
+
 - ✅ Complete CRUD with transactions
 - ✅ Atomic tenant + branch + user creation
 - ✅ Bcrypt password hashing
@@ -1355,6 +1423,7 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 - ✅ Multi-tenant isolation
 
 ### Booking Service
+
 - ✅ Complete lifecycle management
 - ✅ Robust time conflict detection
 - ✅ Table availability checking
@@ -1366,20 +1435,22 @@ endTime: { gt: bookingData.startTime }         // existing.end > new.start
 ## 📝 Recommended Actions
 
 ### IMMEDIATE (Before Production)
+
 1. **Implement KOT fixes** (3 issues) - Security-critical
 2. **Implement Inventory service** (complete stub) - Business-critical
 3. **Implement Dashboard service** (complete stub) - Analytics-critical
 
 ### Timeline
+
 - **KOT Service**: 2-3 hours
 - **Inventory Service**: 4-5 hours
 - **Dashboard Service**: 5-6 hours
 - **Total**: 11-14 hours of development
 
 ### Testing Requirements
+
 - [ ] Unit tests for all new methods
 - [ ] Multi-tenant isolation tests
 - [ ] Time conflict detection tests
 - [ ] Pagination tests
 - [ ] Error handling tests
-

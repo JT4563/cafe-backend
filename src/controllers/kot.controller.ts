@@ -13,7 +13,21 @@ class KOTController {
     next: NextFunction
   ) {
     try {
-      const list = await KOTService.listByBranch(req.params.branchId);
+      const { branchId } = req.params;
+      const tenantId = req.user?.tenantId;
+      const page = req.query.page ? parseInt(req.query.page) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+
+      if (!tenantId) {
+        throw new Error("Tenant ID is required");
+      }
+
+      const list = await KOTService.listByBranch(
+        branchId,
+        tenantId,
+        page,
+        limit
+      );
       res.json(list);
     } catch (err) {
       next(err);
