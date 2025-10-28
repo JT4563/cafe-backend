@@ -37,7 +37,11 @@ class KOTController {
   static async printKOT(req: Request & any, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      await KOTService.printKOT(id, req.user?.tenantId);
+      const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        throw new Error("Tenant ID is required");
+      }
+      await KOTService.printKOT(id, tenantId);
       res.json({ ok: true });
     } catch (err) {
       next(err);

@@ -6,6 +6,7 @@
 import { Router } from "express";
 import * as BillingController from "../controllers/billing.controller";
 import authMiddleware from "../middlewares/auth.middleware";
+import tenantMiddleware from "../middlewares/tenant.middleware";
 import {
   validateRequest,
   validateParams,
@@ -19,8 +20,9 @@ import {
 
 const router = Router();
 
-// All billing routes require authentication
+// All billing routes require authentication AND tenant verification
 router.use(authMiddleware);
+router.use(tenantMiddleware);
 
 // More specific routes must come FIRST (before :tenantId param)
 router.get(

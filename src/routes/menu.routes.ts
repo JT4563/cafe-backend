@@ -14,10 +14,12 @@ import {
   getMenuItemsByCategory,
 } from "../controllers/menu.controller";
 import authMiddleware from "../middlewares/auth.middleware";
+import tenantMiddleware from "../middlewares/tenant.middleware";
 
 const router = Router();
 
 router.use(authMiddleware);
+router.use(tenantMiddleware);
 
 router.get("/:tenantId", getAllMenuItems);
 router.post("/:tenantId", createMenuItem);

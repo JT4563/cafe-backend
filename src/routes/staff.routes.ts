@@ -9,10 +9,12 @@ import {
   getStaffByBranch,
 } from "../controllers/staff.controller";
 import authMiddleware from "../middlewares/auth.middleware";
+import tenantMiddleware from "../middlewares/tenant.middleware";
 
 const router = Router();
 
 router.use(authMiddleware);
+router.use(tenantMiddleware);
 
 router.get("/:tenantId", getAllStaff);
 router.post("/:tenantId", createStaff);

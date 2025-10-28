@@ -13,10 +13,12 @@ import {
   getDashboardSummary,
 } from "../controllers/report.controller";
 import authMiddleware from "../middlewares/auth.middleware";
+import tenantMiddleware from "../middlewares/tenant.middleware";
 
 const router = Router();
 
 router.use(authMiddleware);
+router.use(tenantMiddleware);
 
 router.get("/sales/:tenantId", getSalesReport);
 router.get("/inventory/:tenantId", getInventoryReport);

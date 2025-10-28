@@ -5,6 +5,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import BookingService from "../services/booking.service";
+import { validateTenantAccess, withTenantScope } from "../utils/tenant.utils";
 
 class BookingController {
   static async createBooking(
@@ -15,6 +16,11 @@ class BookingController {
     try {
       const payload = req.body;
       const tenantId = req.user?.tenantId;
+
+      if (!tenantId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
       const booking = await BookingService.create({ ...payload, tenantId });
       res.status(201).json(booking);
     } catch (err) {
@@ -29,17 +35,17 @@ class BookingController {
   ) {
     try {
       const { branchId } = req.params;
-      const tenantId = req.user?.tenantId;
+      const userTenantId = req.user?.tenantId;
       const page = req.query.page ? parseInt(req.query.page) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit) : 20;
 
-      if (!tenantId) {
-        throw new Error("Tenant ID is required");
+      if (!userTenantId) {
+        return res.status(401).json({ error: "Unauthorized" });
       }
 
       const list = await BookingService.listByBranch(
         branchId,
-        tenantId,
+        userTenantId,
         page,
         limit
       );

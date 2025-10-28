@@ -8,6 +8,11 @@
 import { Request, Response, NextFunction } from "express";
 import { successResponse } from "../utils/response.util";
 import * as InventoryService from "../services/inventory.service";
+import {
+  validateTenantAccess,
+  withTenantScope,
+  buildPaginatedQuery,
+} from "../utils/tenant.utils";
 
 /**
  * Get all inventory items
@@ -18,14 +23,14 @@ export const getInventoryItems = async (
   next: NextFunction
 ) => {
   try {
-    const tenantId = req.user?.tenantId;
+    const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
     const branchId = req.query.branchId as string | undefined;
     const page = req.query.page ? parseInt(req.query.page) : 1;
     const limit = req.query.limit ? parseInt(req.query.limit) : 50;
 
-    if (!tenantId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    // Validate tenant access
+    validateTenantAccess(userTenantId, tenantId);
 
     const items = await InventoryService.getInventoryItems(
       tenantId,
@@ -48,11 +53,11 @@ export const createInventoryItem = async (
   next: NextFunction
 ) => {
   try {
-    const tenantId = req.user?.tenantId;
+    const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
 
-    if (!tenantId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    // Validate tenant access
+    validateTenantAccess(userTenantId, tenantId);
 
     const item = await InventoryService.createInventoryItem({
       ...req.body,
@@ -74,15 +79,16 @@ export const updateInventoryItem = async (
 ) => {
   try {
     const { itemId } = req.params;
-    const tenantId = req.user?.tenantId;
+    const userTenantId = req.user?.tenantId;
 
-    if (!tenantId) {
+    // Validate tenant has user tenantId
+    if (!userTenantId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     const item = await InventoryService.updateInventoryItem(
       itemId,
-      tenantId,
+      userTenantId,
       req.body
     );
     return successResponse(res, item, "Inventory item updated");
@@ -101,13 +107,13 @@ export const deleteInventoryItem = async (
 ) => {
   try {
     const { itemId } = req.params;
-    const tenantId = req.user?.tenantId;
+    const userTenantId = req.user?.tenantId;
 
-    if (!tenantId) {
+    if (!userTenantId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    await InventoryService.deleteInventoryItem(itemId, tenantId);
+    await InventoryService.deleteInventoryItem(itemId, userTenantId);
     return successResponse(res, null, "Inventory item deleted");
   } catch (error) {
     next(error);
@@ -123,12 +129,12 @@ export const getLowStockItems = async (
   next: NextFunction
 ) => {
   try {
-    const tenantId = req.user?.tenantId;
+    const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
     const branchId = req.query.branchId as string | undefined;
 
-    if (!tenantId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    // Validate tenant access
+    validateTenantAccess(userTenantId, tenantId);
 
     const items = await InventoryService.getLowStockItemsOptimized(
       tenantId,

@@ -14,6 +14,9 @@ class OrderController {
   ) {
     try {
       const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        throw new Error("Tenant ID is required");
+      }
       const payload = req.body;
       const order = await OrderService.createOrder({
         ...payload,
@@ -29,6 +32,9 @@ class OrderController {
   static async getOrder(req: Request & any, res: Response, next: NextFunction) {
     try {
       const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        throw new Error("Tenant ID is required");
+      }
       const order = await OrderService.getOrder(req.params.id, tenantId);
       res.json(order);
     } catch (err) {
