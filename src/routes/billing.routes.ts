@@ -6,16 +6,51 @@
 import { Router } from "express";
 import * as BillingController from "../controllers/billing.controller";
 import authMiddleware from "../middlewares/auth.middleware";
+import {
+  validateRequest,
+  validateParams,
+} from "../middlewares/validate.middleware";
+import {
+  createInvoiceSchema,
+  processPaymentSchema,
+  tenantIdParamSchema,
+  invoiceIdParamSchema,
+} from "../validators/billing.validators";
 
 const router = Router();
 
 // All billing routes require authentication
 router.use(authMiddleware);
 
-router.get("/summary/:tenantId", BillingController.getBillingSummary);
-router.get("/:tenantId", BillingController.getInvoices);
-router.post("/:tenantId", BillingController.createInvoice);
-router.get("/invoices/:invoiceId", BillingController.getInvoiceById);
-router.post("/payments/:invoiceId", BillingController.processPayment);
+// More specific routes must come FIRST (before :tenantId param)
+router.get(
+  "/:tenantId/summary",
+  validateParams(tenantIdParamSchema),
+  BillingController.getBillingSummary
+);
+router.get(
+  "/:tenantId/invoices/:invoiceId",
+  validateParams(invoiceIdParamSchema),
+  BillingController.getInvoiceById
+);
+router.post(
+  "/:tenantId/invoices/:invoiceId/payments",
+  validateParams(invoiceIdParamSchema),
+  validateRequest(processPaymentSchema),
+  BillingController.processPayment
+);
+
+// Generic routes after specific ones
+router.get(
+  "/:tenantId",
+  validateParams(tenantIdParamSchema),
+  BillingController.getInvoices
+);
+router.post(
+  "/:tenantId",
+  validateParams(tenantIdParamSchema),
+  validateRequest(createInvoiceSchema),
+  BillingController.createInvoice
+);
 
 export default router;

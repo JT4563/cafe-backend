@@ -1,6 +1,7 @@
-
-import { Router } from 'express';
-import AuthController from '../controllers/auth.controller';
+import { Router } from "express";
+import AuthController from "../controllers/auth.controller";
+import { validateRequest } from "../middlewares/validate.middleware";
+import { loginSchema, refreshTokenSchema } from "../validators/auth.validators";
 
 const router = Router();
 
@@ -8,11 +9,16 @@ const router = Router();
  * POST /api/v1/auth/login
  * Body: { email, password }
  */
-router.post('/login', AuthController.login);
+router.post("/login", validateRequest(loginSchema), AuthController.login);
 
 /**
  * POST /api/v1/auth/refresh
+ * Body: { refreshToken }
  */
-router.post('/refresh', AuthController.refresh);
+router.post(
+  "/refresh",
+  validateRequest(refreshTokenSchema),
+  AuthController.refresh
+);
 
 export default router;
