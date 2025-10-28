@@ -39,3 +39,13 @@ export const itemIdParamSchema = Joi.object({
     "any.required": "itemId is required",
   }),
 });
+
+export const inventoryQuerySchema = Joi.object({
+  branchId: Joi.string().uuid().optional(),
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(50),
+});
+
+export const lowStockQuerySchema = Joi.object({
+  branchId: Joi.string().uuid().optional(),
+});

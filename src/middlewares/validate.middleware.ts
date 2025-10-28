@@ -65,3 +65,31 @@ export function validateParams(schema: any) {
     }
   };
 }
+
+/**
+ * Validates query parameters against a schema
+ */
+export function validateQuery(schema: any) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { error, value } = schema.validate(req.query, {
+        abortEarly: false,
+        stripUnknown: true,
+      });
+
+      if (error) {
+        const messages = error.details.map((detail: any) => detail.message);
+        return res.status(400).json({
+          error: "Validation failed",
+          details: messages,
+        });
+      }
+
+      req.query = value;
+      next();
+    } catch (err) {
+      logger.error("Query validation error:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  };
+}

@@ -1,20 +1,18 @@
-/**
- * inventory.routes.ts
- * Routes for inventory management.
- */
-
 import { Router } from "express";
 import * as InventoryController from "../controllers/inventory.controller";
 import authMiddleware from "../middlewares/auth.middleware";
 import {
   validateRequest,
   validateParams,
+  validateQuery,
 } from "../middlewares/validate.middleware";
 import {
   createInventoryItemSchema,
   updateInventoryItemSchema,
   tenantIdParamSchema,
   itemIdParamSchema,
+  inventoryQuerySchema,
+  lowStockQuerySchema,
 } from "../validators/inventory.validators";
 
 const router = Router();
@@ -25,6 +23,7 @@ router.use(authMiddleware);
 router.get(
   "/:tenantId/low-stock",
   validateParams(tenantIdParamSchema),
+  validateQuery(lowStockQuerySchema),
   InventoryController.getLowStockItems
 );
 
@@ -32,6 +31,7 @@ router.get(
 router.get(
   "/:tenantId",
   validateParams(tenantIdParamSchema),
+  validateQuery(inventoryQuerySchema),
   InventoryController.getInventoryItems
 );
 router.post(

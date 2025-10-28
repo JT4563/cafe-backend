@@ -6,7 +6,10 @@
 import { Router } from "express";
 import * as DashboardController from "../controllers/dashboard.controller";
 import authMiddleware from "../middlewares/auth.middleware";
-import { validateParams } from "../middlewares/validate.middleware";
+import {
+  validateParams,
+  validateQuery,
+} from "../middlewares/validate.middleware";
 import {
   tenantIdParamSchema,
   analyticsQuerySchema,
@@ -25,6 +28,7 @@ router.get(
 router.get(
   "/analytics/:tenantId",
   validateParams(tenantIdParamSchema),
+  validateQuery(analyticsQuerySchema),
   DashboardController.getSalesAnalytics
 );
 router.get(
@@ -35,6 +39,7 @@ router.get(
 router.get(
   "/top-products/:tenantId",
   validateParams(tenantIdParamSchema),
+  validateQuery(topProductsQuerySchema),
   DashboardController.getTopProducts
 );
 
