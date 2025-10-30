@@ -1,0 +1,1068 @@
+{
+  "info": {
+    "name": "Cafe POS SaaS - Complete API Testing",
+    "description": "100% verified Postman collection for all 45 API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "POST Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@cafe.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 Tenant Management (Company Control)",
+      "item": [
+        {
+          "name": "POST Create Tenant (Signup)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pizza Palace\",\n  \"email\": \"owner@pizzapalace.com\",\n  \"password\": \"StrongPassword123!\",\n  \"domain\": \"pizza-palace.saas.com\",\n  \"branchName\": \"Main Location\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenants",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants"]
+            }
+          }
+        },
+        {
+          "name": "GET Tenant Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tenants/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "{{tenantId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 Billing & Subscription (Company Dashboard)",
+      "item": [
+        {
+          "name": "GET Billing Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/billing/{{tenantId}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["billing", "{{tenantId}}", "summary"]
+            }
+          },
+          "description": "Shows: totalRevenue, totalPaid, totalPending, pendingInvoices, paidInvoices, subscription status"
+        },
+        {
+          "name": "GET List All Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/billing/{{tenantId}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["billing", "{{tenantId}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "description": "Shows PAID vs UNPAID invoices, calculates days left, subscription status"
+        },
+        {
+          "name": "POST Create Invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"clr4xk9j20000jpz0z0z0z0z5\",\n  \"amount\": 450.75,\n  \"tax\": 45.08,\n  \"discount\": 25.00,\n  \"dueDate\": \"2025-11-30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/billing/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["billing", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Invoice Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/billing/{{tenantId}}/invoices/{{invoiceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["billing", "{{tenantId}}", "invoices", "{{invoiceId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Record Payment (Mark PAID)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 470.83,\n  \"method\": \"CARD\",\n  \"reference\": \"TXN-12345678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/billing/{{tenantId}}/invoices/{{invoiceId}}/payments",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "billing",
+                "{{tenantId}}",
+                "invoices",
+                "{{invoiceId}}",
+                "payments"
+              ]
+            }
+          },
+          "description": "Payment methods: CASH, CARD, UPI, BANK_TRANSFER, WALLET, CHEQUE"
+        }
+      ]
+    },
+    {
+      "name": "📋 Menu Management",
+      "item": [
+        {
+          "name": "GET Menu Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/menu/{{tenantId}}?category=Beverages&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["menu", "{{tenantId}}"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Beverages"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST Create Menu Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cappuccino\",\n  \"description\": \"Creamy cappuccino with espresso\",\n  \"price\": 5.99,\n  \"category\": \"Beverages\",\n  \"sku\": \"CAP-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["menu", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Menu Item By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/menu/{{tenantId}}/item/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["menu", "{{tenantId}}", "item", "{{itemId}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Menu Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cappuccino Updated\",\n  \"price\": 6.49,\n  \"description\": \"Updated cappuccino\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu/{{tenantId}}/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["menu", "{{tenantId}}", "{{itemId}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Deactivate Menu Item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/menu/{{tenantId}}/{{itemId}}/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["menu", "{{tenantId}}", "{{itemId}}", "deactivate"]
+            }
+          }
+        },
+        {
+          "name": "GET Menu Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/menu/{{tenantId}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["menu", "{{tenantId}}", "categories"]
+            }
+          }
+        },
+        {
+          "name": "GET Menu By Category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/menu/{{tenantId}}/category/Beverages",
+              "host": ["{{baseUrl}}"],
+              "path": ["menu", "{{tenantId}}", "category", "Beverages"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Order Management",
+      "item": [
+        {
+          "name": "POST Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"clr4xk9j20000jpz0z0z0z0z3\",\n  \"items\": [\n    {\n      \"productId\": \"clr4xk9j20000jpz0z0z0z0z10\",\n      \"quantity\": 2,\n      \"price\": 5.99\n    },\n    {\n      \"productId\": \"clr4xk9j20000jpz0z0z0z0z11\",\n      \"quantity\": 1,\n      \"price\": 3.99\n    }\n  ],\n  \"customerName\": \"John Doe\",\n  \"tableNumber\": \"T-05\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "GET Order Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "{{orderId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Staff Management",
+      "item": [
+        {
+          "name": "GET Staff List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/staff/{{tenantId}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["staff", "{{tenantId}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST Create Staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marco\",\n  \"email\": \"marco@cafe.com\",\n  \"role\": \"MANAGER\",\n  \"branchId\": \"clr4xk9j20000jpz0z0z0z0z3\",\n  \"salary\": 2500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/staff/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["staff", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Staff By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/staff/{{tenantId}}/{{staffId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["staff", "{{tenantId}}", "{{staffId}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Staff",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marco Updated\",\n  \"salary\": 2700\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/staff/{{tenantId}}/{{staffId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["staff", "{{tenantId}}", "{{staffId}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Deactivate Staff",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/staff/{{tenantId}}/{{staffId}}/deactivate",
+              "host": ["{{baseUrl}}"],
+              "path": ["staff", "{{tenantId}}", "{{staffId}}", "deactivate"]
+            }
+          }
+        },
+        {
+          "name": "POST Assign Staff Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"SUPERVISOR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/staff/{{tenantId}}/{{staffId}}/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["staff", "{{tenantId}}", "{{staffId}}", "role"]
+            }
+          }
+        },
+        {
+          "name": "GET Staff By Branch",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/staff/{{tenantId}}/branch/{{branchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["staff", "{{tenantId}}", "branch", "{{branchId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Reports",
+      "item": [
+        {
+          "name": "GET Sales Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/report/sales/{{tenantId}}?startDate=2025-10-01&endDate=2025-10-30",
+              "host": ["{{baseUrl}}"],
+              "path": ["report", "sales", "{{tenantId}}"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-10-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-10-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Inventory Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/report/inventory/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["report", "inventory", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Staff Performance Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/report/staff/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["report", "staff", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Payment Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/report/payment/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["report", "payment", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/report/dashboard/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["report", "dashboard", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Export Sales Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/report/export/sales/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["report", "export", "sales", "{{tenantId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Inventory (PROFESSIONAL+)",
+      "item": [
+        {
+          "name": "GET Low Stock Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/inventory/{{tenantId}}/low-stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["inventory", "{{tenantId}}", "low-stock"]
+            }
+          }
+        },
+        {
+          "name": "GET Inventory Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/inventory/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["inventory", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Inventory Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Coffee Beans - Arabica\",\n  \"sku\": \"CB-ARAB-001\",\n  \"quantity\": 25,\n  \"unit\": \"KG\",\n  \"minLevel\": 10,\n  \"maxLevel\": 50\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/inventory/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["inventory", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Update Inventory Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 30\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/inventory/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["inventory", "{{itemId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Inventory Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/inventory/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["inventory", "{{itemId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎫 Dashboard Analytics",
+      "item": [
+        {
+          "name": "GET Dashboard Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/overview/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "overview", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Sales Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/analytics/{{tenantId}}?period=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "analytics", "{{tenantId}}"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "monthly"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Revenue Charts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/charts/{{tenantId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "charts", "{{tenantId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Top Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/top-products/{{tenantId}}?limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "top-products", "{{tenantId}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📅 Booking/Reservations (ENTERPRISE)",
+      "item": [
+        {
+          "name": "POST Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"Sarah Smith\",\n  \"customerEmail\": \"sarah@email.com\",\n  \"customerPhone\": \"+1-555-0123\",\n  \"partySize\": 4,\n  \"reservationDate\": \"2025-11-15\",\n  \"reservationTime\": \"19:30\",\n  \"specialRequests\": \"Window seat preferred\",\n  \"branchId\": \"clr4xk9j20000jpz0z0z0z0z3\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
+            }
+          }
+        },
+        {
+          "name": "GET Bookings By Branch",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bookings/branch/{{branchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings", "branch", "{{branchId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🧾 KOT - Kitchen Order Tickets (PROFESSIONAL+)",
+      "item": [
+        {
+          "name": "GET KOT By Branch",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/kot/branch/{{branchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["kot", "branch", "{{branchId}}"]
+            }
+          }
+        },
+        {
+          "name": "POST Print KOT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/kot/{{kotId}}/print",
+              "host": ["{{baseUrl}}"],
+              "path": ["kot", "{{kotId}}", "print"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📤 Bulk Upload (ENTERPRISE)",
+      "item": [
+        {
+          "name": "POST Bulk Upload",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/upload/bulk?type=menu",
+              "host": ["{{baseUrl}}"],
+              "path": ["upload", "bulk"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "menu"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoiceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "staffId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "branchId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "kotId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
