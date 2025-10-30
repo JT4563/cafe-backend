@@ -6,6 +6,7 @@
 import { Router } from "express";
 import * as DashboardController from "../controllers/dashboard.controller";
 import authMiddleware from "../middlewares/auth.middleware";
+import tenantMiddleware from "../middlewares/tenant.middleware";
 import {
   validateParams,
   validateQuery,
@@ -18,7 +19,9 @@ import {
 
 const router = Router();
 
+// Apply auth and tenant middleware to all dashboard routes
 router.use(authMiddleware);
+router.use(tenantMiddleware);
 
 router.get(
   "/overview/:tenantId",

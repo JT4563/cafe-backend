@@ -1,11 +1,30 @@
-
-import { Router } from 'express';
-import authMiddleware from '../middlewares/auth.middleware';
-import OrderController from '../controllers/order.controller';
+import { Router } from "express";
+import authMiddleware from "../middlewares/auth.middleware";
+import tenantMiddleware from "../middlewares/tenant.middleware";
+import {
+  validateRequest,
+  validateParams,
+} from "../middlewares/validate.middleware";
+import {
+  createOrderSchema,
+  orderIdParamSchema,
+} from "../validators/order.validators";
+import OrderController from "../controllers/order.controller";
 
 const router = Router();
 
-router.post('/', authMiddleware, OrderController.createOrder);
-router.get('/:id', authMiddleware, OrderController.getOrder);
+router.use(authMiddleware);
+router.use(tenantMiddleware);
+
+router.post(
+  "/",
+  validateRequest(createOrderSchema),
+  OrderController.createOrder
+);
+router.get(
+  "/:id",
+  validateParams(orderIdParamSchema),
+  OrderController.getOrder
+);
 
 export default router;

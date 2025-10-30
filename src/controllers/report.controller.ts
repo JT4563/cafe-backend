@@ -8,18 +8,22 @@
 import { Request, Response, NextFunction } from "express";
 import { successResponse } from "../utils/response.util";
 import ReportService from "../services/report.service";
+import { validateTenantAccess } from "../utils/tenant.utils";
 
 /**
  * Get sales report
  */
 export const getSalesReport = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
     const { startDate, endDate } = req.query;
+
+    validateTenantAccess(userTenantId, tenantId);
 
     if (!startDate || !endDate) {
       return res
@@ -43,13 +47,16 @@ export const getSalesReport = async (
  * Get inventory report
  */
 export const getInventoryReport = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
     const { branchId } = req.query;
+
+    validateTenantAccess(userTenantId, tenantId);
 
     const report = await ReportService.getInventoryReport(
       tenantId,
@@ -66,13 +73,16 @@ export const getInventoryReport = async (
  * Get staff performance report
  */
 export const getStaffPerformanceReport = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
     const { startDate, endDate } = req.query;
+
+    validateTenantAccess(userTenantId, tenantId);
 
     if (!startDate || !endDate) {
       return res
@@ -95,13 +105,16 @@ export const getStaffPerformanceReport = async (
  * Get payment report
  */
 export const getPaymentReport = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
     const { startDate, endDate } = req.query;
+
+    validateTenantAccess(userTenantId, tenantId);
 
     if (!startDate || !endDate) {
       return res
@@ -124,13 +137,16 @@ export const getPaymentReport = async (
  * Export sales data
  */
 export const exportSalesData = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
     const { startDate, endDate } = req.query;
+
+    validateTenantAccess(userTenantId, tenantId);
 
     if (!startDate || !endDate) {
       return res
@@ -159,12 +175,16 @@ export const exportSalesData = async (
  * Get dashboard summary
  */
 export const getDashboardSummary = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
+
+    validateTenantAccess(userTenantId, tenantId);
+
     const summary = await ReportService.getDashboardSummary(tenantId);
     return successResponse(res, summary, "Dashboard summary generated");
   } catch (error) {

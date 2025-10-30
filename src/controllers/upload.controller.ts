@@ -15,6 +15,9 @@ class UploadController {
     try {
       const file = req.file;
       const tenantId = req.user?.tenantId;
+      if (!tenantId) {
+        throw new Error("Tenant ID is required");
+      }
       const job = await UploadService.enqueueBulkImport({
         filePath: file.path,
         filename: file.originalname,

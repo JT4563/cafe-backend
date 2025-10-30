@@ -1,13 +1,28 @@
-
-import { Router } from 'express';
-import TenantController from '../controllers/tenant.controller';
+import { Router } from "express";
+import TenantController from "../controllers/tenant.controller";
+import {
+  validateRequest,
+  validateParams,
+} from "../middlewares/validate.middleware";
+import {
+  createTenantSchema,
+  tenantIdParamSchema,
+} from "../validators/tenant.validators";
 
 const router = Router();
 
 // POST /api/v1/tenants - create tenant (owner signup)
-router.post('/', TenantController.createTenant);
+router.post(
+  "/",
+  validateRequest(createTenantSchema),
+  TenantController.createTenant
+);
 
 // GET /api/v1/tenants/:id
-router.get('/:id', TenantController.getTenant);
+router.get(
+  "/:id",
+  validateParams(tenantIdParamSchema),
+  TenantController.getTenant
+);
 
 export default router;

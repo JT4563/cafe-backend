@@ -31,3 +31,10 @@ export const createBookingSchema = Joi.object({
   deposit: Joi.number().min(0).optional(),
   notes: Joi.string().optional(),
 }).with("startTime", "endTime");
+
+export const branchIdParamSchema = Joi.object({
+  branchId: Joi.string().uuid().required().messages({
+    "string.guid": "branchId must be a valid UUID",
+    "any.required": "branchId is required",
+  }),
+});

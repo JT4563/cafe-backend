@@ -8,25 +8,27 @@
 import { Request, Response, NextFunction } from "express";
 import { success } from "../utils/response.util";
 import * as BillingService from "../services/billing.service";
+import {
+  validateTenantAccess,
+  withTenantScope,
+  buildPaginatedQuery,
+} from "../utils/tenant.utils";
 
 /**
  * Get billing summary for a tenant
  * GET /api/billing/summary?tenantId=xxx
  */
 export const getBillingSummary = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId } = req.params;
+    const userTenantId = req.user?.tenantId;
 
-    if (!tenantId) {
-      return res.status(400).json({
-        success: false,
-        error: "tenantId is required",
-      });
-    }
+    // Validate tenant access
+    validateTenantAccess(userTenantId, tenantId);
 
     const summary = await BillingService.getBillingSummary(tenantId);
     return res
@@ -42,20 +44,17 @@ export const getBillingSummary = async (
  * GET /api/billing/:tenantId/invoices?page=1&limit=10
  */
 export const getInvoices = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId } = req.params;
     const { page = 1, limit = 10 } = req.query;
+    const userTenantId = req.user?.tenantId;
 
-    if (!tenantId) {
-      return res.status(400).json({
-        success: false,
-        error: "tenantId is required",
-      });
-    }
+    // Validate tenant access
+    validateTenantAccess(userTenantId, tenantId);
 
     const invoices = await BillingService.getInvoices(
       tenantId,
@@ -76,27 +75,17 @@ export const getInvoices = async (
  * Body: { orderId, amount, tax?, discount?, dueDate? }
  */
 export const createInvoice = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId } = req.params;
     const invoiceData = req.body;
+    const userTenantId = req.user?.tenantId;
 
-    if (!tenantId) {
-      return res.status(400).json({
-        success: false,
-        error: "tenantId is required",
-      });
-    }
-
-    if (!invoiceData.orderId || !invoiceData.amount) {
-      return res.status(400).json({
-        success: false,
-        error: "orderId and amount are required",
-      });
-    }
+    // Validate tenant access
+    validateTenantAccess(userTenantId, tenantId);
 
     const invoice = await BillingService.createInvoice(tenantId, invoiceData);
     return res
@@ -112,19 +101,16 @@ export const createInvoice = async (
  * GET /api/billing/:tenantId/invoices/:invoiceId
  */
 export const getInvoiceById = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId, invoiceId } = req.params;
+    const userTenantId = req.user?.tenantId;
 
-    if (!tenantId || !invoiceId) {
-      return res.status(400).json({
-        success: false,
-        error: "tenantId and invoiceId are required",
-      });
-    }
+    // Validate tenant access
+    validateTenantAccess(userTenantId, tenantId);
 
     const invoice = await BillingService.getInvoiceById(invoiceId, tenantId);
     return res
@@ -142,44 +128,17 @@ export const getInvoiceById = async (
  * Methods: CASH, CARD, UPI, BANK_TRANSFER, WALLET, CHEQUE
  */
 export const processPayment = async (
-  req: Request,
+  req: Request & any,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { tenantId, invoiceId } = req.params;
     const { amount, method, reference } = req.body;
+    const userTenantId = req.user?.tenantId;
 
-    if (!tenantId || !invoiceId) {
-      return res.status(400).json({
-        success: false,
-        error: "tenantId and invoiceId are required",
-      });
-    }
-
-    if (!amount || !method) {
-      return res.status(400).json({
-        success: false,
-        error: "amount and method are required",
-      });
-    }
-
-    const validMethods = [
-      "CASH",
-      "CARD",
-      "UPI",
-      "BANK_TRANSFER",
-      "WALLET",
-      "CHEQUE",
-    ];
-    if (!validMethods.includes(method.toUpperCase())) {
-      return res.status(400).json({
-        success: false,
-        error: `Invalid payment method. Valid methods: ${validMethods.join(
-          ", "
-        )}`,
-      });
-    }
+    // Validate tenant access
+    validateTenantAccess(userTenantId, tenantId);
 
     const result = await BillingService.processPayment(
       invoiceId,

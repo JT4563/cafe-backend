@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as InventoryController from "../controllers/inventory.controller";
 import authMiddleware from "../middlewares/auth.middleware";
+import tenantMiddleware from "../middlewares/tenant.middleware";
 import {
   validateRequest,
   validateParams,
@@ -18,6 +19,7 @@ import {
 const router = Router();
 
 router.use(authMiddleware);
+router.use(tenantMiddleware);
 
 // More specific routes FIRST (before generic :tenantId)
 router.get(
