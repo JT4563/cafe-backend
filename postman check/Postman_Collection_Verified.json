@@ -17,7 +17,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
                   "    pm.environment.set('accessToken', pm.response.json().accessToken);",
                   "    pm.environment.set('refreshToken', pm.response.json().refreshToken);",
                   "    pm.environment.set('tenantId', pm.response.json().user.tenantId);",
