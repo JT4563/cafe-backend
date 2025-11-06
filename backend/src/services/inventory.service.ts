@@ -8,6 +8,7 @@
 
 import prisma from "../config/db.config";
 import logger from "../config/logger";
+import { Decimal } from "@prisma/client/runtime/library";
 import { MovementType } from "@prisma/client";
 
 interface StockItemData {

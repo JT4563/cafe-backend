@@ -16,6 +16,7 @@ import inventoryRoutes from "./inventory.routes";
 import reportRoutes from "./report.routes";
 import billingRoutes from "./billing.routes";
 import dashboardRoutes from "./dashboard.routes";
+import subscriptionRoutes from "./subscription.routes";
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.use("/inventory", inventoryRoutes);
 router.use("/report", reportRoutes);
 router.use("/billing", billingRoutes);
 router.use("/dashboard", dashboardRoutes);
+router.use("/subscriptions", subscriptionRoutes);
 
 router.get("/", (_req, res) => res.json({ ok: true, version: "1.0.0" }));
 

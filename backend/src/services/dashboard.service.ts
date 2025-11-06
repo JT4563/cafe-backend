@@ -145,9 +145,9 @@ export async function getSalesAnalytics(
 
     const analytics = {
       totalOrders: orders.length,
-      totalRevenue: orders.reduce((sum, order) => sum + order.total, 0),
-      totalTax: orders.reduce((sum, order) => sum + order.tax, 0),
-      totalDiscount: orders.reduce((sum, order) => sum + order.discount, 0),
+      totalRevenue: orders.reduce((sum, order) => sum + Number(order.total), 0),
+      totalTax: orders.reduce((sum, order) => sum + Number(order.tax), 0),
+      totalDiscount: orders.reduce((sum, order) => sum + Number(order.discount), 0),
       orders,
       startDate,
       endDate,
@@ -202,7 +202,7 @@ export async function getRevenueCharts(
     const dailyData: Record<string, number> = {};
     orders.forEach((order) => {
       const date = new Date(order.createdAt).toISOString().split("T")[0];
-      dailyData[date] = (dailyData[date] || 0) + order.total;
+      dailyData[date] = (dailyData[date] || 0) + Number(order.total);
     });
 
     // Group by week
@@ -211,7 +211,7 @@ export async function getRevenueCharts(
       const date = new Date(order.createdAt);
       const weekStart = new Date(date.setDate(date.getDate() - date.getDay()));
       const weekKey = weekStart.toISOString().split("T")[0];
-      weeklyData[weekKey] = (weeklyData[weekKey] || 0) + order.total;
+      weeklyData[weekKey] = (weeklyData[weekKey] || 0) + Number(order.total);
     });
 
     // Group by month
@@ -219,7 +219,7 @@ export async function getRevenueCharts(
     orders.forEach((order) => {
       const date = new Date(order.createdAt).toISOString().split("T")[0];
       const monthKey = date.substring(0, 7); // YYYY-MM
-      monthlyData[monthKey] = (monthlyData[monthKey] || 0) + order.total;
+      monthlyData[monthKey] = (monthlyData[monthKey] || 0) + Number(order.total);
     });
 
     const charts = {
