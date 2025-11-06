@@ -6,6 +6,7 @@
 
 import prisma from "../config/db.config";
 import logger from "../config/logger";
+import { Decimal } from "@prisma/client/runtime/library";
 
 class ReportService {
   /**
@@ -41,9 +42,25 @@ class ReportService {
       });
 
       // Calculate metrics
-      const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
-      const totalTax = orders.reduce((sum, o) => sum + o.tax, 0);
-      const totalDiscount = orders.reduce((sum, o) => sum + o.discount, 0);
+      const totalRevenue = orders.reduce((sum, o) => {
+        const oTotal =
+          o.total instanceof Decimal ? o.total : new Decimal(o.total);
+        return sum.plus(oTotal);
+      }, new Decimal(0));
+
+      const totalTax = orders.reduce((sum, o) => {
+        const oTax = o.tax instanceof Decimal ? o.tax : new Decimal(o.tax || 0);
+        return sum.plus(oTax);
+      }, new Decimal(0));
+
+      const totalDiscount = orders.reduce((sum, o) => {
+        const oDiscount =
+          o.discount instanceof Decimal
+            ? o.discount
+            : new Decimal(o.discount || 0);
+        return sum.plus(oDiscount);
+      }, new Decimal(0));
+
       const totalItems = orders.reduce(
         (sum, o) => sum + o.items.reduce((s, i) => s + i.qty, 0),
         0
@@ -64,12 +81,19 @@ class ReportService {
         summary: {
           totalOrders: orders.length,
           paidOrders,
-          totalRevenue,
-          totalTax,
-          totalDiscount,
-          netRevenue: totalRevenue - totalDiscount,
+          totalRevenue: totalRevenue.toString(),
+          totalTax: totalTax.toString(),
+          totalDiscount: totalDiscount.toString(),
+          netRevenue: totalRevenue.minus(totalDiscount).toString(),
           averageOrderValue:
-            orders.length > 0 ? totalRevenue / orders.length : 0,
+            orders.length > 0
+              ? parseFloat(
+                  totalRevenue
+                    .dividedBy(orders.length)
+                    .toDecimalPlaces(2)
+                    .toString()
+                )
+              : 0,
           totalItems,
         },
         byBranch: this.groupByBranch(orders),
@@ -194,16 +218,27 @@ class ReportService {
       // Group by staff
       const performanceByStaff = staff.map((s) => {
         const staffOrders = orders.filter((o) => o.userId === s.id);
-        const totalRevenue = staffOrders.reduce((sum, o) => sum + o.total, 0);
+        const totalRevenue = staffOrders.reduce((sum, o) => {
+          const oTotal =
+            o.total instanceof Decimal ? o.total : new Decimal(o.total);
+          return sum.plus(oTotal);
+        }, new Decimal(0));
 
         return {
           staffId: s.id,
           staffName: s.name || s.email,
           role: s.role,
           ordersCount: staffOrders.length,
-          totalRevenue,
+          totalRevenue: totalRevenue.toString(),
           averageOrderValue:
-            staffOrders.length > 0 ? totalRevenue / staffOrders.length : 0,
+            staffOrders.length > 0
+              ? parseFloat(
+                  totalRevenue
+                    .dividedBy(staffOrders.length)
+                    .toDecimalPlaces(2)
+                    .toString()
+                )
+              : 0,
           lastLogin: s.lastLogin,
         };
       });
@@ -220,7 +255,11 @@ class ReportService {
         totalStaff: staff.length,
         activeStaff: performanceByStaff.filter((p) => p.ordersCount > 0).length,
         topPerformers: performanceByStaff
-          .sort((a, b) => b.totalRevenue - a.totalRevenue)
+          .sort((a, b) => {
+            const aRev = new Decimal(a.totalRevenue);
+            const bRev = new Decimal(b.totalRevenue);
+            return bRev.minus(aRev).toNumber();
+          })
           .slice(0, 5),
         performance: performanceByStaff,
       };
@@ -271,10 +310,11 @@ class ReportService {
         (p) => p.status === "COMPLETED"
       );
       const failedPayments = payments.filter((p) => p.status === "FAILED");
-      const totalAmount = completedPayments.reduce(
-        (sum, p) => sum + p.amount,
-        0
-      );
+      const totalAmount = completedPayments.reduce((sum, p) => {
+        const pAmount =
+          p.amount instanceof Decimal ? p.amount : new Decimal(p.amount);
+        return sum.plus(pAmount);
+      }, new Decimal(0));
 
       logger.info(
         `Payment report generated for tenant ${tenantId}: ${payments.length} payments`
@@ -286,7 +326,7 @@ class ReportService {
           totalPayments: payments.length,
           completedPayments: completedPayments.length,
           failedPayments: failedPayments.length,
-          totalAmount,
+          totalAmount: totalAmount.toString(),
           successRate:
             payments.length > 0
               ? (completedPayments.length / payments.length) * 100
@@ -359,7 +399,11 @@ class ReportService {
         },
       });
 
-      const todaySales = todayOrders.reduce((sum, o) => sum + o.total, 0);
+      const todaySales = todayOrders.reduce((sum, o) => {
+        const oTotal =
+          o.total instanceof Decimal ? o.total : new Decimal(o.total);
+        return sum.plus(oTotal);
+      }, new Decimal(0));
 
       // Get pending orders
       const pendingOrders = await prisma.order.count({
@@ -384,7 +428,7 @@ class ReportService {
 
       return {
         sales: {
-          todayRevenue: todaySales,
+          todayRevenue: todaySales.toString(),
           todayOrders: todayOrders.length,
         },
         orders: {

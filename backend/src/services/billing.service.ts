@@ -8,13 +8,14 @@
 
 import prisma from "../config/db.config";
 import logger from "../config/logger";
+import { Decimal } from "@prisma/client/runtime/library";
 
 interface BillingSummary {
   tenantId: string;
-  totalRevenue: number;
-  totalInvoiced: number;
-  totalPaid: number;
-  totalPending: number;
+  totalRevenue: Decimal | string;
+  totalInvoiced: Decimal | string;
+  totalPaid: Decimal | string;
+  totalPending: Decimal | string;
   pendingInvoices: number;
   paidInvoices: number;
   overallRevenueTrend: number;
@@ -67,15 +68,29 @@ export async function getBillingSummary(
     });
 
     // Calculate totals
-    const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const totalInvoiced = invoices.reduce((sum, inv) => {
+      const invAmount =
+        inv.amount instanceof Decimal ? inv.amount : new Decimal(inv.amount);
+      return sum.plus(invAmount);
+    }, new Decimal(0));
+
     const totalPaid = payments
       .filter((p) => p.status === "COMPLETED")
-      .reduce((sum, p) => sum + p.amount, 0);
+      .reduce((sum, p) => {
+        const pAmount =
+          p.amount instanceof Decimal ? p.amount : new Decimal(p.amount);
+        return sum.plus(pAmount);
+      }, new Decimal(0));
+
     const totalPending = invoices
       .filter((inv) =>
         ["DRAFT", "SENT", "VIEWED", "OVERDUE"].includes(inv.status)
       )
-      .reduce((sum, inv) => sum + inv.amount, 0);
+      .reduce((sum, inv) => {
+        const invAmount =
+          inv.amount instanceof Decimal ? inv.amount : new Decimal(inv.amount);
+        return sum.plus(invAmount);
+      }, new Decimal(0));
     const pendingInvoices = invoices.filter(
       (inv) => !["PAID", "CANCELLED"].includes(inv.status)
     ).length;
@@ -85,7 +100,11 @@ export async function getBillingSummary(
     const orders = await prisma.order.findMany({
       where: { tenantId, status: "COMPLETED" },
     });
-    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+    const totalRevenue = orders.reduce((sum, order) => {
+      const orderTotal =
+        order.total instanceof Decimal ? order.total : new Decimal(order.total);
+      return sum.plus(orderTotal);
+    }, new Decimal(0));
 
     // Calculate revenue trend (this month vs last month)
     const now = new Date();
@@ -106,20 +125,23 @@ export async function getBillingSummary(
         new Date(o.createdAt) <= lastDayLastMonth
     );
 
-    const thisMonthRevenue = thisMonthOrders.reduce(
-      (sum, o) => sum + o.total,
-      0
-    );
-    const lastMonthRevenue = lastMonthOrders.reduce(
-      (sum, o) => sum + o.total,
-      0
-    );
+    const thisMonthRevenue = thisMonthOrders.reduce((sum, o) => {
+      const oTotal =
+        o.total instanceof Decimal ? o.total : new Decimal(o.total);
+      return sum.plus(oTotal);
+    }, new Decimal(0));
+    const lastMonthRevenue = lastMonthOrders.reduce((sum, o) => {
+      const oTotal =
+        o.total instanceof Decimal ? o.total : new Decimal(o.total);
+      return sum.plus(oTotal);
+    }, new Decimal(0));
 
     const overallRevenueTrend =
-      lastMonthRevenue > 0
+      lastMonthRevenue.toNumber() > 0
         ? parseFloat(
             (
-              ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) *
+              ((thisMonthRevenue.toNumber() - lastMonthRevenue.toNumber()) /
+                lastMonthRevenue.toNumber()) *
               100
             ).toFixed(2)
           )
@@ -356,17 +378,30 @@ export async function getInvoiceById(invoiceId: string, tenantId: string) {
     // Calculate payment summary
     const totalPaid = invoice.payments
       .filter((p) => p.status === "COMPLETED")
-      .reduce((sum, p) => sum + p.amount, 0);
-    const amountDue = invoice.amount - totalPaid;
+      .reduce((sum, p) => {
+        const pAmount =
+          p.amount instanceof Decimal ? p.amount : new Decimal(p.amount);
+        return sum.plus(pAmount);
+      }, new Decimal(0));
+
+    const invoiceAmount =
+      invoice.amount instanceof Decimal
+        ? invoice.amount
+        : new Decimal(invoice.amount);
+    const amountDue = invoiceAmount.minus(totalPaid);
 
     logger.info(`Invoice ${invoiceId} fetched successfully`);
 
     return {
       ...invoice,
-      totalPaid,
-      amountDue,
+      totalPaid: totalPaid.toString(),
+      amountDue: amountDue.toString(),
       percentagePaid: parseFloat(
-        ((totalPaid / invoice.amount) * 100).toFixed(2)
+        totalPaid
+          .dividedBy(invoiceAmount)
+          .times(100)
+          .toDecimalPlaces(2)
+          .toString()
       ),
     };
   } catch (error) {
@@ -423,12 +458,22 @@ export async function processPayment(
       where: { invoiceId, tenantId, status: "COMPLETED" },
     });
 
-    const totalPaid = existingPayments.reduce((sum, p) => sum + p.amount, 0);
-    const remainingDue = invoice.amount - totalPaid;
+    const totalPaid = existingPayments.reduce((sum, p) => {
+      const pAmount =
+        p.amount instanceof Decimal ? p.amount : new Decimal(p.amount);
+      return sum.plus(pAmount);
+    }, new Decimal(0));
 
-    if (amount > remainingDue) {
+    const invoiceAmount =
+      invoice.amount instanceof Decimal
+        ? invoice.amount
+        : new Decimal(invoice.amount);
+    const paymentAmount = new Decimal(amount);
+    const remainingDue = invoiceAmount.minus(totalPaid);
+
+    if (paymentAmount.greaterThan(remainingDue)) {
       throw new Error(
-        `Payment amount ${amount} exceeds remaining due ${remainingDue}`
+        `Payment amount ${amount} exceeds remaining due ${remainingDue.toString()}`
       );
     }
 
@@ -438,15 +483,15 @@ export async function processPayment(
         invoiceId,
         tenantId,
         method: method as any,
-        amount,
+        amount: paymentAmount,
         status: "COMPLETED",
         reference: reference || null,
       },
     });
 
     // Update invoice status if fully paid
-    const newTotalPaid = totalPaid + amount;
-    if (newTotalPaid >= invoice.amount) {
+    const newTotalPaid = totalPaid.plus(paymentAmount);
+    if (newTotalPaid.greaterThanOrEqualTo(invoiceAmount)) {
       await prisma.invoice.update({
         where: { id: invoiceId },
         data: {
@@ -572,29 +617,48 @@ export async function getRevenueAnalytics(
       },
     });
 
-    const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
-    const totalTax = orders.reduce((sum, order) => sum + order.tax, 0);
-    const totalDiscount = orders.reduce(
-      (sum, order) => sum + order.discount,
-      0
-    );
+    const totalRevenue = orders.reduce((sum, order) => {
+      const orderTotal =
+        order.total instanceof Decimal ? order.total : new Decimal(order.total);
+      return sum.plus(orderTotal);
+    }, new Decimal(0));
+
+    const totalTax = orders.reduce((sum, order) => {
+      const orderTax =
+        order.tax instanceof Decimal ? order.tax : new Decimal(order.tax || 0);
+      return sum.plus(orderTax);
+    }, new Decimal(0));
+
+    const totalDiscount = orders.reduce((sum, order) => {
+      const orderDiscount =
+        order.discount instanceof Decimal
+          ? order.discount
+          : new Decimal(order.discount || 0);
+      return sum.plus(orderDiscount);
+    }, new Decimal(0));
+
     const orderCount = orders.length;
     const averageOrderValue =
-      orderCount > 0 ? parseFloat((totalRevenue / orderCount).toFixed(2)) : 0;
+      orderCount > 0
+        ? parseFloat(
+            totalRevenue.dividedBy(orderCount).toDecimalPlaces(2).toString()
+          )
+        : 0;
+    const netRevenue = totalRevenue.minus(totalDiscount);
 
     logger.info(
-      `Revenue analytics: Total=${totalRevenue}, Orders=${orderCount}, Average=${averageOrderValue}`
+      `Revenue analytics: Total=${totalRevenue.toString()}, Orders=${orderCount}, Average=${averageOrderValue}`
     );
 
     return {
       startDate,
       endDate,
-      totalRevenue,
-      totalTax,
-      totalDiscount,
+      totalRevenue: totalRevenue.toString(),
+      totalTax: totalTax.toString(),
+      totalDiscount: totalDiscount.toString(),
       orderCount,
       averageOrderValue,
-      netRevenue: totalRevenue - totalDiscount,
+      netRevenue: netRevenue.toString(),
     };
   } catch (error) {
     logger.error("Error fetching revenue analytics:", error);
