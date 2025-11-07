@@ -26,6 +26,15 @@ class TenantController {
       next(err);
     }
   }
+
+  static async getAllTenants(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tenants = await TenantService.getAllTenants();
+      res.json(tenants);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export default TenantController;

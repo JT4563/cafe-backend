@@ -35,11 +35,11 @@ class AuthController {
   static async refresh(req: Request, res: Response, next: NextFunction) {
     try {
       const { refreshToken } = req.body;
-      
+
       if (!refreshToken) {
         return res.status(400).json({
           error: "Validation failed",
-          details: ["Refresh token is required"]
+          details: ["Refresh token is required"],
         });
       }
 

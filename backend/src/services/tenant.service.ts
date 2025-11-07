@@ -123,6 +123,27 @@ class TenantService {
   }
 
   /**
+   * Get all tenants
+   */
+  static async getAllTenants() {
+    try {
+      const tenants = await prisma.tenant.findMany({
+        include: {
+          branches: true,
+          _count: {
+            select: { users: true, products: true, orders: true },
+          },
+        },
+      });
+
+      return tenants;
+    } catch (error) {
+      logger.error("Error getting all tenants:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Update tenant
    */
   static async updateTenant(tenantId: string, data: Partial<CreateTenantData>) {

@@ -7,6 +7,7 @@
 ## 🔍 YOUR TOKEN ANALYSIS
 
 **Your Request Body**:
+
 ```json
 {
   "refreshToken": "{{eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWhkdXZhZnkwMDAzamp2YW13cG9lenNpIiwiaWF0IjoxNzYyNDkxMTMzLCJleHAiOjE3NjMwOTU5MzN9._BZsexf05XzBG3ZEl4kkXOigIPkSsIUqKTd34c17FYw}}"
@@ -20,11 +21,13 @@
 ### Token Structure ✅
 
 JWT tokens have 3 parts separated by dots (`.`):
+
 ```
 header.payload.signature
 ```
 
 **Your Token**:
+
 ```
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
   .eyJ1c2VySWQiOiJjbWhkdXZhZnkwMDAzamp2YW13cG9lenNpIiwiaWF0IjoxNzYyNDkxMTMzLCJleHAiOjE3NjMwOTU5MzN9
@@ -36,25 +39,28 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 ---
 
 ### Part 1: Header (Base64 Decoded)
+
 ```json
 {
-  "alg": "HS256",    // ✅ HMAC SHA256
-  "typ": "JWT"       // ✅ JSON Web Token
+  "alg": "HS256", // ✅ HMAC SHA256
+  "typ": "JWT" // ✅ JSON Web Token
 }
 ```
 
 ---
 
 ### Part 2: Payload (Base64 Decoded)
+
 ```json
 {
-  "userId": "cmhduvafy0003jjvamwpoezsi",    // ✅ User ID present
-  "iat": 1762491133,                         // ✅ Issued at (Nov 7, 2025)
-  "exp": 1763095933                          // ✅ Expires (Nov 14, 2025)
+  "userId": "cmhduvafy0003jjvamwpoezsi", // ✅ User ID present
+  "iat": 1762491133, // ✅ Issued at (Nov 7, 2025)
+  "exp": 1763095933 // ✅ Expires (Nov 14, 2025)
 }
 ```
 
 **Token Expiration**:
+
 - Issued: Nov 7, 2025 at 04:52:13 UTC
 - Expires: Nov 14, 2025 at 04:52:13 UTC
 - Duration: **7 days** ✅
@@ -62,6 +68,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
 ---
 
 ### Part 3: Signature
+
 ```
 _BZsexf05XzBG3ZEl4kkXOigIPkSsIUqKTd34c17FYw
 ```
@@ -73,6 +80,7 @@ _BZsexf05XzBG3ZEl4kkXOigIPkSsIUqKTd34c17FYw
 ## ⚠️ POSTMAN VARIABLE SYNTAX
 
 **Your Format**:
+
 ```json
 {
   "refreshToken": "{{eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...}}"
@@ -90,12 +98,14 @@ If you're using **Postman**, the `{{}}` syntax is for **variables**, not literal
 ### Option 1: If Using Postman Variables (RECOMMENDED)
 
 **Step 1**: Save token in Postman variables
+
 ```
 Environment Variable: refreshToken
 Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWhkdXZhZnkwMDAzamp2YW13cG9lenNpIiwiaWF0IjoxNzYyNDkxMTMzLCJleHAiOjE3NjMwOTU5MzN9._BZsexf05XzBG3ZEl4kkXOigIPkSsIUqKTd34c17FYw
 ```
 
 **Step 2**: Use in request body
+
 ```json
 {
   "refreshToken": "{{refreshToken}}"
@@ -123,7 +133,9 @@ If testing with **curl** or **raw HTTP**:
 ## 🎯 POSTMAN SETUP (Recommended)
 
 ### Step 1: After Login/Register
+
 Response contains:
+
 ```json
 {
   "accessToken": "...",
@@ -133,7 +145,9 @@ Response contains:
 ```
 
 ### Step 2: Save to Variable
+
 Use Postman **Tests** tab in the login response:
+
 ```javascript
 pm.environment.set("refreshToken", pm.response.json().refreshToken);
 pm.environment.set("accessToken", pm.response.json().accessToken);
@@ -141,7 +155,9 @@ pm.environment.set("tenantId", pm.response.json().user.tenantId);
 ```
 
 ### Step 3: Use in Refresh Request
+
 **Request Body**:
+
 ```json
 {
   "refreshToken": "{{refreshToken}}"
@@ -154,21 +170,22 @@ pm.environment.set("tenantId", pm.response.json().user.tenantId);
 
 ## ✅ TOKEN FORMAT VERDICT
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| JWT Structure | ✅ | 3 parts with dots |
-| Header | ✅ | HS256 algorithm |
-| Payload | ✅ | Contains userId, iat, exp |
-| Signature | ✅ | Valid Base64URL |
-| Expiration | ✅ | 7 days (Nov 7-14, 2025) |
-| Format in Postman | ⚠️ | Use `{{refreshToken}}` variable syntax |
-| Raw format | ✅ | Valid for curl/raw HTTP |
+| Check             | Status | Notes                                  |
+| ----------------- | ------ | -------------------------------------- |
+| JWT Structure     | ✅     | 3 parts with dots                      |
+| Header            | ✅     | HS256 algorithm                        |
+| Payload           | ✅     | Contains userId, iat, exp              |
+| Signature         | ✅     | Valid Base64URL                        |
+| Expiration        | ✅     | 7 days (Nov 7-14, 2025)                |
+| Format in Postman | ⚠️     | Use `{{refreshToken}}` variable syntax |
+| Raw format        | ✅     | Valid for curl/raw HTTP                |
 
 ---
 
 ## 🔧 FIX THE ERROR
 
 **Current Setup** (if it's failing):
+
 ```json
 {
   "refreshToken": "{{eyJhbGciOiJ...}}"
@@ -180,10 +197,12 @@ pm.environment.set("tenantId", pm.response.json().user.tenantId);
 **Solution**:
 
 ### In Postman:
+
 1. Save token to environment: `refreshToken` = `eyJhbGciOiJ...`
 2. Use in body: `"refreshToken": "{{refreshToken}}"`
 
 ### In Raw HTTP/curl:
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWhkdXZhZnkwMDAzamp2YW13cG9lenNpIiwiaWF0IjoxNzYyNDkxMTMzLCJleHAiOjE3NjMwOTU5MzN9._BZsexf05XzBG3ZEl4kkXOigIPkSsIUqKTd34c17FYw"
@@ -199,14 +218,17 @@ pm.environment.set("tenantId", pm.response.json().user.tenantId);
 1. **POST** `http://localhost:4000/api/v1/auth/refresh`
 2. **Headers**: `Content-Type: application/json`
 3. **Body**:
+
 ```json
 {
   "refreshToken": "{{refreshToken}}"
 }
 ```
+
 4. **Click Send**
 
 ✅ **Expected Response** (200 OK):
+
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -220,11 +242,13 @@ pm.environment.set("tenantId", pm.response.json().user.tenantId);
 **Your token format**: ✅ **VALID JWT**
 
 **How to use it**:
+
 - ✅ In Postman: Set as variable, then use `{{refreshToken}}`
 - ✅ In raw HTTP: Use the literal token value
 - ⚠️ Don't include `{{}}` around the raw token value in JSON
 
 **Token Details**:
+
 - Type: Refresh Token (7-day expiry)
 - Algorithm: HS256
 - User: cmhduvafy0003jjvamwpoezsi
@@ -233,4 +257,3 @@ pm.environment.set("tenantId", pm.response.json().user.tenantId);
 ---
 
 **Status**: ✅ READY TO USE
-
