@@ -44,12 +44,16 @@
 
 ---
 
-## 🔑 TWO USER ROLES
+## 🔑 ADMIN ROLES IN SYSTEM
 
 ### 1. 🎯 SUPER ADMIN (Platform Owner - Company)
-Manages the entire SaaS platform
+
+**Number per company:** 1-5 people
+
+Manages the entire SaaS platform and ALL restaurants
 
 **Exclusive Admin Routes:**
+
 - `/api/v1/subscriptions/admin` - View all subscriptions
 - `/api/v1/subscriptions/admin` - Create/update/delete subscriptions
 - `/api/v1/subscriptions/admin/expiring/soon` - Monitor renewals
@@ -58,28 +62,72 @@ Manages the entire SaaS platform
 - `/api/v1/subscriptions/admin/dashboard/metrics` - MRR/ARR/Churn metrics
 
 **Key Responsibilities:**
+
 - Monitor all restaurant subscriptions
 - Handle subscription upgrades/downgrades
 - Track renewal dates and send reminders
 - Convert trials to paid customers
 - Monitor MRR (Monthly Recurring Revenue)
 - Manage invoicing and payments at scale
+- Manage SaaS platform infrastructure
 
 ---
 
-### 2. 🍽️ TENANT USERS (Restaurant Owner/Staff)
-Manage their own restaurant/café
+### 2. 🍽️ RESTAURANT OWNER (Tenant Owner)
+
+**Number per restaurant:** Usually 1
+
+Manages ONLY their own restaurant/café
 
 **Tenant-Scoped Routes:**
+
 - Can only access `/api/v1/*` with their tenantId
 - Cannot see other restaurants' data
+- Cannot access `/subscriptions/admin` routes (platform only)
 - Can manage: menu, orders, staff, inventory, bookings
+
+**Note:** Restaurant Owner ≠ Super Admin
+
+- They can view their own subscription status
+- They CANNOT create/manage other subscriptions
+- Tenant middleware enforces data isolation
+
+---
+
+### 3. 👨‍💼 BRANCH MANAGER (Restaurant Manager)
+
+**Number per restaurant:** 1-10 (varies)
+
+Manages operations at their branch
+
+**Limited Routes:**
+
+- Can create/process orders
+- Can manage inventory
+- Cannot access billing/subscription
+- Cannot manage staff (owner only)
+
+---
+
+### 4. 👨‍🍳 STAFF (Chef/Waiter/Cashier)
+
+**Number per restaurant:** Many
+
+Performs daily operations
+
+**Limited Routes:**
+
+- Can create orders
+- Can print KOTs
+- Can view menu
+- No access to financial data
 
 ---
 
 ## 📊 COMPLETE ENDPOINT BREAKDOWN
 
 ### **Module 1: AUTHENTICATION** (Public)
+
 ```
 POST   /api/v1/auth/register      Create user + tenant (signup)
 POST   /api/v1/auth/login         Login with email/password
@@ -87,6 +135,7 @@ POST   /api/v1/auth/refresh       Refresh expired token
 ```
 
 ### **Module 2: TENANT MANAGEMENT**
+
 ```
 POST   /api/v1/tenants            Create new restaurant
 GET    /api/v1/tenants            List all accessible tenants
@@ -94,6 +143,7 @@ GET    /api/v1/tenants/:id        Get tenant details
 ```
 
 ### **Module 3: SUBSCRIPTIONS** (SaaS Core)
+
 ```
 ┌─ CUSTOMER ENDPOINTS
 ├─ GET    /api/v1/subscriptions/:tenantId          View own subscription
@@ -110,6 +160,7 @@ GET    /api/v1/tenants/:id        Get tenant details
 ```
 
 ### **Module 4: BILLING & INVOICING**
+
 ```
 GET    /api/v1/billing/:tenantId/summary           Billing overview
 GET    /api/v1/billing/:tenantId                   List invoices
@@ -119,6 +170,7 @@ POST   /api/v1/billing/:tenantId/invoices/:invoiceId/payments Record payment
 ```
 
 ### **Module 5: MENU MANAGEMENT**
+
 ```
 GET    /api/v1/menu/:tenantId                      List menu items
 POST   /api/v1/menu/:tenantId                      Add menu item
@@ -130,18 +182,21 @@ GET    /api/v1/menu/:tenantId/category/:category   Filter by category
 ```
 
 ### **Module 6: ORDER MANAGEMENT**
+
 ```
 POST   /api/v1/orders                              Create order
 GET    /api/v1/orders/:id                          Get order details
 ```
 
 ### **Module 7: KITCHEN ORDER TICKETS (KOT)**
+
 ```
 GET    /api/v1/kot/branch/:branchId                Display pending KOTs
 POST   /api/v1/kot/:id/print                       Print to kitchen printer
 ```
 
 ### **Module 8: INVENTORY MANAGEMENT**
+
 ```
 GET    /api/v1/inventory/:tenantId                 List inventory
 POST   /api/v1/inventory/:tenantId                 Add item
@@ -151,6 +206,7 @@ GET    /api/v1/inventory/:tenantId/low-stock       Alert on low stock
 ```
 
 ### **Module 9: STAFF MANAGEMENT**
+
 ```
 GET    /api/v1/staff/:tenantId                     List staff
 POST   /api/v1/staff/:tenantId                     Add staff member
@@ -162,6 +218,7 @@ GET    /api/v1/staff/:tenantId/branch/:branchId    Get branch staff
 ```
 
 ### **Module 10: DASHBOARD & ANALYTICS**
+
 ```
 GET    /api/v1/dashboard/overview/:tenantId        Quick performance snapshot
 GET    /api/v1/dashboard/analytics/:tenantId       Sales analysis with filters
@@ -170,6 +227,7 @@ GET    /api/v1/dashboard/top-products/:tenantId    Best sellers
 ```
 
 ### **Module 11: REPORTING & EXPORTS**
+
 ```
 GET    /api/v1/report/sales/:tenantId              Sales report
 GET    /api/v1/report/inventory/:tenantId          Inventory report
@@ -180,12 +238,14 @@ POST   /api/v1/report/export/sales/:tenantId       Export to Excel/CSV
 ```
 
 ### **Module 12: TABLE BOOKINGS**
+
 ```
 POST   /api/v1/bookings                            Create reservation
 GET    /api/v1/bookings/branch/:branchId           List branch bookings
 ```
 
 ### **Module 13: FILE UPLOADS**
+
 ```
 POST   /api/v1/upload/bulk                         Import menu/staff/inventory from Excel
 ```
@@ -223,6 +283,7 @@ Request
 ## 📈 COMPLETE SAAS FLOW
 
 ### **Phase 1: USER SIGNUP**
+
 ```
 1. POST /api/v1/auth/register
    ├─ Email, Password, Name, TenantName
@@ -237,6 +298,7 @@ Request
 ```
 
 ### **Phase 2: RESTAURANT SETUP**
+
 ```
 3. POST /api/v1/menu/:tenantId
    └─ Add menu items (dishes)
@@ -252,6 +314,7 @@ Request
 ```
 
 ### **Phase 3: OPERATIONS START**
+
 ```
 7. POST /api/v1/orders
    └─ Create customer order
@@ -267,6 +330,7 @@ Request
 ```
 
 ### **Phase 4: MONITORING & ANALYTICS**
+
 ```
 11. GET /api/v1/dashboard/analytics/:tenantId
     └─ View sales trends
@@ -282,6 +346,7 @@ Request
 ```
 
 ### **Phase 5: SUBSCRIPTION RENEWAL (Super Admin)**
+
 ```
 15. GET /api/v1/subscriptions/admin/expiring/soon
     └─ Find subscriptions expiring in next 7 days
@@ -301,46 +366,78 @@ Request
 
 ---
 
-## 🎯 ROLE-BASED ACCESS
+## 🎯 ROLE-BASED ACCESS CONTROL
 
-### **Super Admin Access** 🔒
+### **SUPER ADMIN** 🔒 (Platform Company Staff)
+
+**Count:** 1-5 per company
+
 ```
-✅ View all subscriptions
+✅ View ALL subscriptions across all restaurants
 ✅ Manage subscription lifecycle (create/update/cancel)
-✅ Monitor SaaS metrics (MRR, ARR, customer count)
-✅ View all invoices and payments
-✅ Access all tenant data (audit only)
+✅ Monitor SaaS metrics (MRR, ARR, churn)
+✅ View ALL invoices and payments
+✅ Access subscription admin routes:
+   - /api/v1/subscriptions/admin
+   - /api/v1/subscriptions/admin/expiring/soon
+   - /api/v1/subscriptions/admin/trials/*
+✅ Manage tenant creation/deletion
+❌ NOT responsible for restaurant operations
+
+Code Check: Role.ADMIN or Role.OWNER (platform level)
 ```
 
-### **Owner Access** (Restaurant Owner)
+### **RESTAURANT OWNER** (Tenant Owner)
+
+**Count:** 1 per restaurant
+
 ```
-✅ View own subscription status
-✅ Manage own menu items
-✅ Manage own staff
-✅ Process orders
-✅ View own invoices
-✅ View own reports
-❌ Cannot manage other restaurants
-❌ Cannot change subscription (must request admin)
+✅ View OWN subscription status
+✅ Manage OWN menu items
+✅ Manage OWN staff
+✅ Process orders at own restaurant
+✅ View OWN invoices
+✅ View OWN reports & analytics
+✅ Manage own inventory
+✅ Create bookings
+❌ CANNOT access /api/v1/subscriptions/admin
+❌ CANNOT see other restaurants
+❌ CANNOT change subscription (must request admin)
+❌ Tenant middleware blocks cross-tenant access
+
+Code Check: Role.OWNER (restaurant tenant)
 ```
 
-### **Manager Access** (Branch Manager)
+### **BRANCH MANAGER** (Restaurant Manager)
+
+**Count:** 1-10 per restaurant
+
 ```
 ✅ Create/process orders
-✅ Manage inventory
+✅ Manage inventory (own branch)
 ✅ View branch dashboard
 ✅ View staff performance (own branch)
 ❌ Cannot manage subscription
 ❌ Cannot manage billing
+❌ Cannot manage staff (owner only)
+
+Code Check: Role.MANAGER
 ```
 
-### **Staff Access** (Waiter/Chef)
+### **STAFF** (Chef/Waiter/Cashier)
+
+**Count:** Many per restaurant
+
 ```
 ✅ Create/view orders
 ✅ View menu items
+✅ Print KOTs (Kitchen Order Tickets)
+✅ View bookings
 ❌ Cannot access financial data
 ❌ Cannot manage staff
 ❌ Cannot manage inventory
+
+Code Check: Role.STAFF, Role.CASHIER, Role.CHEF, Role.WAITER
 ```
 
 ---
@@ -348,18 +445,21 @@ Request
 ## 💡 KEY DESIGN CONCEPTS
 
 ### **Multi-Tenancy**
+
 - Each restaurant = separate Tenant
 - Data completely isolated
 - Users can only access their own tenant
 - Enforced via tenantId in every request
 
 ### **Subscription Model**
+
 - Trial period (free for 14 days)
 - Monthly/Yearly billing cycles
 - Plans: Basic, Premium, Enterprise
 - Auto-renewal with payment provider
 
 ### **Status State Machines**
+
 ```
 Subscription:
 TRIAL → ACTIVE → EXPIRING → EXPIRED → CANCELLED
@@ -372,11 +472,13 @@ DRAFT → ISSUED → PENDING → PAID/OVERDUE
 ```
 
 ### **Soft Deletes**
+
 - Items marked inactive instead of deleted
 - Maintains audit trail
 - Examples: Menu items, Staff, Inventory
 
 ### **Audit Trail**
+
 - Track who changed what and when
 - Important for compliance
 - Valuable for troubleshooting

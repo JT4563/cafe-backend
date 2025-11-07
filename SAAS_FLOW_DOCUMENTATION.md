@@ -1,13 +1,16 @@
 # Café SaaS Backend - Complete API Flow Documentation
 
 ## Overview
+
 This is a **Multi-Tenant SaaS Platform** for restaurant/café management. The system has two primary user types:
+
 1. **Super Admin/OWNER** - Manages the platform, all subscriptions, billing, and tenants
 2. **Tenant Users** - Restaurant owners/staff who use the platform to manage their operations
 
 ---
 
 ## Architecture Layers
+
 ```
 Routes (Express Router)
     ↓
@@ -21,13 +24,15 @@ Database (Prisma ORM)
 ---
 
 ## 1. AUTHENTICATION ROUTES
+
 **Base Path:** `/api/v1/auth`
 
 ### 1.1 User Registration
+
 - **Route:** `POST /api/v1/auth/register`
 - **Access:** Public (No auth required)
 - **Purpose:** Create new tenant account and user simultaneously
-- **Flow:** 
+- **Flow:**
   - Accept email, password, name, tenantName
   - Hash password using bcrypt
   - Create User record with tenant
@@ -38,6 +43,7 @@ Database (Prisma ORM)
 - **Service:** `AuthService.register()`
 
 ### 1.2 User Login
+
 - **Route:** `POST /api/v1/auth/login`
 - **Access:** Public
 - **Purpose:** Authenticate user and issue tokens
@@ -53,6 +59,7 @@ Database (Prisma ORM)
 - **Service:** `AuthService.login()`
 
 ### 1.3 Token Refresh
+
 - **Route:** `POST /api/v1/auth/refresh`
 - **Access:** Public
 - **Purpose:** Get new access token using refresh token
@@ -68,9 +75,11 @@ Database (Prisma ORM)
 ---
 
 ## 2. TENANT MANAGEMENT ROUTES
+
 **Base Path:** `/api/v1/tenants`
 
 ### 2.1 Create Tenant
+
 - **Route:** `POST /api/v1/tenants`
 - **Access:** Authenticated users only
 - **Purpose:** Create new restaurant/café tenant (part of registration flow)
@@ -85,6 +94,7 @@ Database (Prisma ORM)
 - **Service:** `TenantService.createTenant()`
 
 ### 2.2 Get All Tenants
+
 - **Route:** `GET /api/v1/tenants`
 - **Access:** Authenticated users (Super Admin sees all, others see own)
 - **Purpose:** List all tenants the user can access
@@ -98,6 +108,7 @@ Database (Prisma ORM)
 - **Service:** `TenantService.getAllTenants()`
 
 ### 2.3 Get Tenant by ID
+
 - **Route:** `GET /api/v1/tenants/:id`
 - **Access:** Authenticated users (must belong to tenant)
 - **Purpose:** Fetch specific tenant details
@@ -112,9 +123,11 @@ Database (Prisma ORM)
 ---
 
 ## 3. SUBSCRIPTION & SaaS BILLING ROUTES
+
 **Base Path:** `/api/v1/subscriptions`
 
 ### 3.1 Get Tenant Subscription
+
 - **Route:** `GET /api/v1/subscriptions/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Get subscription status for specific restaurant
@@ -129,6 +142,7 @@ Database (Prisma ORM)
 - **Service:** `SubscriptionService.getSubscription()`
 
 ### 3.2 Get All Subscriptions (SUPER ADMIN ONLY)
+
 - **Route:** `GET /api/v1/subscriptions/admin`
 - **Access:** Super Admin/Owner only
 - **Purpose:** Dashboard view of all tenant subscriptions
@@ -145,6 +159,7 @@ Database (Prisma ORM)
 - **Service:** `SubscriptionService.getAllSubscriptions()`
 
 ### 3.3 Create Subscription (SUPER ADMIN ONLY)
+
 - **Route:** `POST /api/v1/subscriptions/admin`
 - **Access:** Super Admin only
 - **Purpose:** Manually create subscription for new tenant
@@ -160,6 +175,7 @@ Database (Prisma ORM)
 - **Service:** `SubscriptionService.createSubscription()`
 
 ### 3.4 Update Subscription (SUPER ADMIN ONLY)
+
 - **Route:** `PATCH /api/v1/subscriptions/admin/:tenantId`
 - **Access:** Super Admin only
 - **Purpose:** Modify subscription plan/amount (plan upgrade/downgrade)
@@ -175,6 +191,7 @@ Database (Prisma ORM)
 - **Service:** `SubscriptionService.updateSubscription()`
 
 ### 3.5 Cancel Subscription (SUPER ADMIN ONLY)
+
 - **Route:** `DELETE /api/v1/subscriptions/admin/:tenantId`
 - **Access:** Super Admin only
 - **Purpose:** Cancel restaurant subscription
@@ -190,6 +207,7 @@ Database (Prisma ORM)
 - **Service:** `SubscriptionService.cancelSubscription()`
 
 ### 3.6 Get Expiring Subscriptions (SUPER ADMIN ONLY)
+
 - **Route:** `GET /api/v1/subscriptions/admin/expiring/soon`
 - **Access:** Super Admin only
 - **Purpose:** Identify subscriptions expiring in next N days (for renewal reminders)
@@ -203,6 +221,7 @@ Database (Prisma ORM)
 - **Service:** `SubscriptionService.getExpiringSubscriptions()`
 
 ### 3.7 Get Expiring Trials (SUPER ADMIN ONLY)
+
 - **Route:** `GET /api/v1/subscriptions/admin/trials/expiring`
 - **Access:** Super Admin only
 - **Purpose:** Find trials about to expire (for conversion tracking)
@@ -215,6 +234,7 @@ Database (Prisma ORM)
 - **Service:** `SubscriptionService.getExpiringTrials()`
 
 ### 3.8 Get Expired Trials (SUPER ADMIN ONLY)
+
 - **Route:** `GET /api/v1/subscriptions/admin/trials/expired`
 - **Access:** Super Admin only
 - **Purpose:** Find expired trials ready to charge/convert
@@ -227,6 +247,7 @@ Database (Prisma ORM)
 - **Service:** `SubscriptionService.getExpiredTrials()`
 
 ### 3.9 Get SaaS Dashboard Metrics (SUPER ADMIN ONLY)
+
 - **Route:** `GET /api/v1/subscriptions/admin/dashboard/metrics`
 - **Access:** Super Admin only
 - **Purpose:** High-level SaaS metrics for admin dashboard
@@ -243,9 +264,11 @@ Database (Prisma ORM)
 ---
 
 ## 4. BILLING & INVOICING ROUTES
+
 **Base Path:** `/api/v1/billing`
 
 ### 4.1 Get Billing Summary
+
 - **Route:** `GET /api/v1/billing/:tenantId/summary`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Get billing overview for restaurant
@@ -260,6 +283,7 @@ Database (Prisma ORM)
 - **Service:** `BillingService.getBillingSummary()`
 
 ### 4.2 Get Invoices List
+
 - **Route:** `GET /api/v1/billing/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** List all invoices for restaurant
@@ -274,6 +298,7 @@ Database (Prisma ORM)
 - **Service:** `BillingService.getInvoices()`
 
 ### 4.3 Create Invoice
+
 - **Route:** `POST /api/v1/billing/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Create new invoice (manual or automated)
@@ -289,6 +314,7 @@ Database (Prisma ORM)
 - **Service:** `BillingService.createInvoice()`
 
 ### 4.4 Get Invoice by ID
+
 - **Route:** `GET /api/v1/billing/:tenantId/invoices/:invoiceId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** View detailed invoice
@@ -301,6 +327,7 @@ Database (Prisma ORM)
 - **Service:** `BillingService.getInvoiceById()`
 
 ### 4.5 Process Payment
+
 - **Route:** `POST /api/v1/billing/:tenantId/invoices/:invoiceId/payments`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Record payment for invoice
@@ -318,9 +345,11 @@ Database (Prisma ORM)
 ---
 
 ## 5. MENU MANAGEMENT ROUTES
+
 **Base Path:** `/api/v1/menu`
 
 ### 5.1 Get All Menu Items
+
 - **Route:** `GET /api/v1/menu/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** List all menu items for restaurant
@@ -334,6 +363,7 @@ Database (Prisma ORM)
 - **Service:** `MenuService.getAllMenuItems()`
 
 ### 5.2 Create Menu Item
+
 - **Route:** `POST /api/v1/menu/:tenantId`
 - **Access:** Authenticated + tenant verification (staff/owner)
 - **Purpose:** Add new item to menu
@@ -347,6 +377,7 @@ Database (Prisma ORM)
 - **Service:** `MenuService.createMenuItem()`
 
 ### 5.3 Get Menu Item by ID
+
 - **Route:** `GET /api/v1/menu/:tenantId/item/:itemId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Get detailed view of single menu item
@@ -359,6 +390,7 @@ Database (Prisma ORM)
 - **Service:** `MenuService.getMenuItemById()`
 
 ### 5.4 Update Menu Item
+
 - **Route:** `PUT /api/v1/menu/:tenantId/:itemId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Modify menu item details
@@ -372,6 +404,7 @@ Database (Prisma ORM)
 - **Service:** `MenuService.updateMenuItem()`
 
 ### 5.5 Deactivate Menu Item
+
 - **Route:** `PATCH /api/v1/menu/:tenantId/:itemId/deactivate`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Hide menu item from orders (soft delete)
@@ -385,6 +418,7 @@ Database (Prisma ORM)
 - **Service:** `MenuService.deactivateMenuItem()`
 
 ### 5.6 Get Menu Categories
+
 - **Route:** `GET /api/v1/menu/:tenantId/categories`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** List all distinct categories in menu
@@ -397,6 +431,7 @@ Database (Prisma ORM)
 - **Service:** `MenuService.getMenuCategories()`
 
 ### 5.7 Get Menu Items by Category
+
 - **Route:** `GET /api/v1/menu/:tenantId/category/:category`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Filter menu by category
@@ -411,9 +446,11 @@ Database (Prisma ORM)
 ---
 
 ## 6. ORDER MANAGEMENT ROUTES
+
 **Base Path:** `/api/v1/orders`
 
 ### 6.1 Create Order
+
 - **Route:** `POST /api/v1/orders`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Create new order in system
@@ -429,6 +466,7 @@ Database (Prisma ORM)
 - **Service:** `OrderService.createOrder()`
 
 ### 6.2 Get Order by ID
+
 - **Route:** `GET /api/v1/orders/:id`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Get order details
@@ -443,9 +481,11 @@ Database (Prisma ORM)
 ---
 
 ## 7. KITCHEN ORDER TICKET (KOT) ROUTES
+
 **Base Path:** `/api/v1/kot`
 
 ### 7.1 List KOT by Branch
+
 - **Route:** `GET /api/v1/kot/branch/:branchId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Get all KOTs for kitchen display system
@@ -459,6 +499,7 @@ Database (Prisma ORM)
 - **Service:** `KOTService.listByBranch()`
 
 ### 7.2 Print KOT
+
 - **Route:** `POST /api/v1/kot/:id/print`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Print kitchen ticket
@@ -475,9 +516,11 @@ Database (Prisma ORM)
 ---
 
 ## 8. INVENTORY MANAGEMENT ROUTES
+
 **Base Path:** `/api/v1/inventory`
 
 ### 8.1 Get Inventory Items
+
 - **Route:** `GET /api/v1/inventory/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** List all inventory items
@@ -491,6 +534,7 @@ Database (Prisma ORM)
 - **Service:** `InventoryService.getInventoryItems()`
 
 ### 8.2 Create Inventory Item
+
 - **Route:** `POST /api/v1/inventory/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Add new item to inventory
@@ -504,6 +548,7 @@ Database (Prisma ORM)
 - **Service:** `InventoryService.createInventoryItem()`
 
 ### 8.3 Update Inventory Item
+
 - **Route:** `PUT /api/v1/inventory/:itemId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Update item quantity or details
@@ -518,6 +563,7 @@ Database (Prisma ORM)
 - **Service:** `InventoryService.updateInventoryItem()`
 
 ### 8.4 Delete Inventory Item
+
 - **Route:** `DELETE /api/v1/inventory/:itemId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Remove item from inventory
@@ -531,6 +577,7 @@ Database (Prisma ORM)
 - **Service:** `InventoryService.deleteInventoryItem()`
 
 ### 8.5 Get Low Stock Items
+
 - **Route:** `GET /api/v1/inventory/:tenantId/low-stock`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Alert on items needing reorder
@@ -546,9 +593,11 @@ Database (Prisma ORM)
 ---
 
 ## 9. STAFF MANAGEMENT ROUTES
+
 **Base Path:** `/api/v1/staff`
 
 ### 9.1 Get All Staff
+
 - **Route:** `GET /api/v1/staff/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** List all staff members
@@ -562,6 +611,7 @@ Database (Prisma ORM)
 - **Service:** `StaffService.getAllStaff()`
 
 ### 9.2 Create Staff
+
 - **Route:** `POST /api/v1/staff/:tenantId`
 - **Access:** Authenticated + tenant verification (manager+)
 - **Purpose:** Add new staff member
@@ -576,6 +626,7 @@ Database (Prisma ORM)
 - **Service:** `StaffService.createStaff()`
 
 ### 9.3 Get Staff by ID
+
 - **Route:** `GET /api/v1/staff/:tenantId/:staffId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Get individual staff details
@@ -588,6 +639,7 @@ Database (Prisma ORM)
 - **Service:** `StaffService.getStaffById()`
 
 ### 9.4 Update Staff
+
 - **Route:** `PUT /api/v1/staff/:tenantId/:staffId`
 - **Access:** Authenticated + tenant verification (manager+)
 - **Purpose:** Update staff details
@@ -601,6 +653,7 @@ Database (Prisma ORM)
 - **Service:** `StaffService.updateStaff()`
 
 ### 9.5 Deactivate Staff
+
 - **Route:** `PATCH /api/v1/staff/:tenantId/:staffId/deactivate`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Deactivate staff account (resignation/termination)
@@ -615,6 +668,7 @@ Database (Prisma ORM)
 - **Service:** `StaffService.deactivateStaff()`
 
 ### 9.6 Assign Role
+
 - **Route:** `POST /api/v1/staff/:tenantId/:staffId/role`
 - **Access:** Authenticated + tenant verification (owner+)
 - **Purpose:** Change staff role/permissions
@@ -629,6 +683,7 @@ Database (Prisma ORM)
 - **Service:** `StaffService.assignRole()`
 
 ### 9.7 Get Staff by Branch
+
 - **Route:** `GET /api/v1/staff/:tenantId/branch/:branchId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Get staff assigned to specific branch
@@ -643,9 +698,11 @@ Database (Prisma ORM)
 ---
 
 ## 10. DASHBOARD & ANALYTICS ROUTES
+
 **Base Path:** `/api/v1/dashboard`
 
 ### 10.1 Get Dashboard Overview
+
 - **Route:** `GET /api/v1/dashboard/overview/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Quick snapshot of restaurant performance
@@ -660,6 +717,7 @@ Database (Prisma ORM)
 - **Service:** `DashboardService.getDashboardOverview()`
 
 ### 10.2 Get Sales Analytics
+
 - **Route:** `GET /api/v1/dashboard/analytics/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Detailed sales analysis
@@ -673,6 +731,7 @@ Database (Prisma ORM)
 - **Service:** `DashboardService.getSalesAnalytics()`
 
 ### 10.3 Get Revenue Charts
+
 - **Route:** `GET /api/v1/dashboard/charts/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Chart data for visualization
@@ -685,6 +744,7 @@ Database (Prisma ORM)
 - **Service:** `DashboardService.getRevenueCharts()`
 
 ### 10.4 Get Top Products
+
 - **Route:** `GET /api/v1/dashboard/top-products/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Best-selling items analysis
@@ -700,9 +760,11 @@ Database (Prisma ORM)
 ---
 
 ## 11. REPORTING ROUTES
+
 **Base Path:** `/api/v1/report`
 
 ### 11.1 Get Sales Report
+
 - **Route:** `GET /api/v1/report/sales/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Comprehensive sales report
@@ -717,6 +779,7 @@ Database (Prisma ORM)
 - **Service:** `ReportService.getSalesReport()`
 
 ### 11.2 Get Inventory Report
+
 - **Route:** `GET /api/v1/report/inventory/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Stock level and valuation report
@@ -730,6 +793,7 @@ Database (Prisma ORM)
 - **Service:** `ReportService.getInventoryReport()`
 
 ### 11.3 Get Staff Performance Report
+
 - **Route:** `GET /api/v1/report/staff/:tenantId`
 - **Access:** Authenticated + tenant verification (manager+)
 - **Purpose:** Staff productivity metrics
@@ -743,6 +807,7 @@ Database (Prisma ORM)
 - **Service:** `ReportService.getStaffPerformanceReport()`
 
 ### 11.4 Get Payment Report
+
 - **Route:** `GET /api/v1/report/payment/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Payment reconciliation and cash flow
@@ -757,6 +822,7 @@ Database (Prisma ORM)
 - **Service:** `ReportService.getPaymentReport()`
 
 ### 11.5 Get Dashboard Summary
+
 - **Route:** `GET /api/v1/report/dashboard/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Executive summary of key reports
@@ -769,6 +835,7 @@ Database (Prisma ORM)
 - **Service:** `ReportService.getDashboardSummary()`
 
 ### 11.6 Export Sales Data
+
 - **Route:** `POST /api/v1/report/export/sales/:tenantId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Export sales data to Excel/CSV
@@ -784,9 +851,11 @@ Database (Prisma ORM)
 ---
 
 ## 12. BOOKING MANAGEMENT ROUTES
+
 **Base Path:** `/api/v1/bookings`
 
 ### 12.1 Create Booking
+
 - **Route:** `POST /api/v1/bookings`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Reserve table/seat
@@ -802,6 +871,7 @@ Database (Prisma ORM)
 - **Service:** `BookingService.createBooking()`
 
 ### 12.2 List Bookings by Branch
+
 - **Route:** `GET /api/v1/bookings/branch/:branchId`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** View all bookings for branch
@@ -817,9 +887,11 @@ Database (Prisma ORM)
 ---
 
 ## 13. FILE UPLOAD ROUTES
+
 **Base Path:** `/api/v1/upload`
 
 ### 13.1 Bulk Upload
+
 - **Route:** `POST /api/v1/upload/bulk`
 - **Access:** Authenticated + tenant verification
 - **Purpose:** Import data (menu items, staff, inventory) via Excel/CSV
@@ -914,6 +986,7 @@ Database (Prisma ORM)
 ## MIDDLEWARE STACK
 
 ### Auth Middleware (`authMiddleware`)
+
 - **Purpose:** Verify JWT token validity
 - **Applied To:** Most protected routes (all except /auth)
 - **Function:**
@@ -923,6 +996,7 @@ Database (Prisma ORM)
   - Reject if no token or invalid token
 
 ### Tenant Middleware (`tenantMiddleware`)
+
 - **Purpose:** Verify user belongs to the tenant
 - **Applied To:** Routes with `:tenantId` parameter
 - **Function:**
@@ -932,6 +1006,7 @@ Database (Prisma ORM)
   - Protect against unauthorized tenant access
 
 ### Validate Middleware (`validateRequest`, `validateParams`, `validateQuery`)
+
 - **Purpose:** Validate incoming request data
 - **Applied To:** POST/PUT/PATCH routes
 - **Function:**
@@ -941,6 +1016,7 @@ Database (Prisma ORM)
   - Return 400 if validation fails
 
 ### Error Middleware (`errorMiddleware`)
+
 - **Purpose:** Centralized error handling
 - **Applied To:** Last in middleware chain (catches all errors)
 - **Function:**
@@ -949,6 +1025,7 @@ Database (Prisma ORM)
   - Return appropriate HTTP status code
 
 ### Rate Limiter Middleware (`rateLimiter.middleware`)
+
 - **Purpose:** Prevent abuse
 - **Applied To:** Auth routes, billing routes
 - **Function:**
@@ -962,6 +1039,7 @@ Database (Prisma ORM)
 Based on controllers and services:
 
 ### Core Entities:
+
 1. **User** - Login credentials, profile (email, name, password)
 2. **Tenant** - Restaurant/café (name, branchCount, active status)
 3. **Subscription** - SaaS plan (plan type, amount, expiry, status: active/trial/cancelled)
@@ -974,6 +1052,7 @@ Based on controllers and services:
 10. **KOT** - Kitchen Order (items to prepare, status: pending/in-progress/ready)
 
 ### Relationships:
+
 - User → Tenant (many users per tenant)
 - Tenant → Subscription (one subscription per tenant)
 - Tenant → Staff (many staff per tenant)
@@ -990,12 +1069,14 @@ Based on controllers and services:
 ## ROLE-BASED ACCESS CONTROL (RBAC)
 
 ### Super Admin Role
+
 - Access to ALL `/admin` endpoints
 - Can manage all subscriptions, tenants, billing
 - Can view all reports and analytics
 - Can manage admin users
 
 ### Owner Role
+
 - Access to own tenant data only
 - Can create/manage staff
 - Can create/manage menu items
@@ -1003,18 +1084,21 @@ Based on controllers and services:
 - Can view own invoices and reports
 
 ### Manager Role
+
 - Same as Owner but limited to assigned branch
 - Can create orders, view orders
 - Can manage inventory
 - Cannot change subscription or billing
 
 ### Staff Role
+
 - Can create/process orders
 - Can view menu items
 - Limited to their assigned branch
 - Cannot access financial data
 
 ### Cashier Role
+
 - Can process payments
 - Can view invoices
 - Can create orders
@@ -1024,64 +1108,64 @@ Based on controllers and services:
 
 ## ENDPOINT SUMMARY TABLE
 
-| Module | Method | Endpoint | Auth | Purpose |
-|--------|--------|----------|------|---------|
-| Auth | POST | /auth/register | ❌ | New user signup |
-| Auth | POST | /auth/login | ❌ | User login |
-| Auth | POST | /auth/refresh | ❌ | Refresh token |
-| Tenant | POST | /tenants | ✅ | Create tenant |
-| Tenant | GET | /tenants | ✅ | List tenants |
-| Tenant | GET | /tenants/:id | ✅ | Get tenant |
-| Subscription | GET | /subscriptions/:tenantId | ✅ | Get subscription |
-| Subscription | GET | /subscriptions/admin | ✅🔒 | List all subscriptions |
-| Subscription | POST | /subscriptions/admin | ✅🔒 | Create subscription |
-| Subscription | PATCH | /subscriptions/admin/:tenantId | ✅🔒 | Update subscription |
-| Subscription | DELETE | /subscriptions/admin/:tenantId | ✅🔒 | Cancel subscription |
-| Subscription | GET | /subscriptions/admin/expiring/soon | ✅🔒 | Get expiring subs |
-| Subscription | GET | /subscriptions/admin/trials/expiring | ✅🔒 | Get expiring trials |
-| Subscription | GET | /subscriptions/admin/trials/expired | ✅🔒 | Get expired trials |
-| Subscription | GET | /subscriptions/admin/dashboard/metrics | ✅🔒 | SaaS metrics |
-| Billing | GET | /billing/:tenantId/summary | ✅ | Billing overview |
-| Billing | GET | /billing/:tenantId | ✅ | List invoices |
-| Billing | POST | /billing/:tenantId | ✅ | Create invoice |
-| Billing | GET | /billing/:tenantId/invoices/:invoiceId | ✅ | Get invoice |
-| Billing | POST | /billing/:tenantId/invoices/:invoiceId/payments | ✅ | Pay invoice |
-| Menu | GET | /menu/:tenantId | ✅ | List menu |
-| Menu | POST | /menu/:tenantId | ✅ | Add menu item |
-| Menu | GET | /menu/:tenantId/item/:itemId | ✅ | Get item |
-| Menu | PUT | /menu/:tenantId/:itemId | ✅ | Update item |
-| Menu | PATCH | /menu/:tenantId/:itemId/deactivate | ✅ | Deactivate item |
-| Menu | GET | /menu/:tenantId/categories | ✅ | List categories |
-| Menu | GET | /menu/:tenantId/category/:category | ✅ | Filter by category |
-| Order | POST | /orders | ✅ | Create order |
-| Order | GET | /orders/:id | ✅ | Get order |
-| KOT | GET | /kot/branch/:branchId | ✅ | KOT list |
-| KOT | POST | /kot/:id/print | ✅ | Print KOT |
-| Inventory | GET | /inventory/:tenantId | ✅ | List inventory |
-| Inventory | POST | /inventory/:tenantId | ✅ | Add item |
-| Inventory | PUT | /inventory/:itemId | ✅ | Update item |
-| Inventory | DELETE | /inventory/:itemId | ✅ | Delete item |
-| Inventory | GET | /inventory/:tenantId/low-stock | ✅ | Low stock alert |
-| Staff | GET | /staff/:tenantId | ✅ | List staff |
-| Staff | POST | /staff/:tenantId | ✅ | Add staff |
-| Staff | GET | /staff/:tenantId/:staffId | ✅ | Get staff |
-| Staff | PUT | /staff/:tenantId/:staffId | ✅ | Update staff |
-| Staff | PATCH | /staff/:tenantId/:staffId/deactivate | ✅ | Remove staff |
-| Staff | POST | /staff/:tenantId/:staffId/role | ✅ | Assign role |
-| Staff | GET | /staff/:tenantId/branch/:branchId | ✅ | Branch staff |
-| Dashboard | GET | /dashboard/overview/:tenantId | ✅ | Dashboard view |
-| Dashboard | GET | /dashboard/analytics/:tenantId | ✅ | Sales analytics |
-| Dashboard | GET | /dashboard/charts/:tenantId | ✅ | Charts data |
-| Dashboard | GET | /dashboard/top-products/:tenantId | ✅ | Top items |
-| Report | GET | /report/sales/:tenantId | ✅ | Sales report |
-| Report | GET | /report/inventory/:tenantId | ✅ | Inventory report |
-| Report | GET | /report/staff/:tenantId | ✅ | Staff report |
-| Report | GET | /report/payment/:tenantId | ✅ | Payment report |
-| Report | GET | /report/dashboard/:tenantId | ✅ | Summary report |
-| Report | POST | /report/export/sales/:tenantId | ✅ | Export sales |
-| Booking | POST | /bookings | ✅ | Create booking |
-| Booking | GET | /bookings/branch/:branchId | ✅ | List bookings |
-| Upload | POST | /upload/bulk | ✅ | Bulk import |
+| Module       | Method | Endpoint                                        | Auth | Purpose                |
+| ------------ | ------ | ----------------------------------------------- | ---- | ---------------------- |
+| Auth         | POST   | /auth/register                                  | ❌   | New user signup        |
+| Auth         | POST   | /auth/login                                     | ❌   | User login             |
+| Auth         | POST   | /auth/refresh                                   | ❌   | Refresh token          |
+| Tenant       | POST   | /tenants                                        | ✅   | Create tenant          |
+| Tenant       | GET    | /tenants                                        | ✅   | List tenants           |
+| Tenant       | GET    | /tenants/:id                                    | ✅   | Get tenant             |
+| Subscription | GET    | /subscriptions/:tenantId                        | ✅   | Get subscription       |
+| Subscription | GET    | /subscriptions/admin                            | ✅🔒 | List all subscriptions |
+| Subscription | POST   | /subscriptions/admin                            | ✅🔒 | Create subscription    |
+| Subscription | PATCH  | /subscriptions/admin/:tenantId                  | ✅🔒 | Update subscription    |
+| Subscription | DELETE | /subscriptions/admin/:tenantId                  | ✅🔒 | Cancel subscription    |
+| Subscription | GET    | /subscriptions/admin/expiring/soon              | ✅🔒 | Get expiring subs      |
+| Subscription | GET    | /subscriptions/admin/trials/expiring            | ✅🔒 | Get expiring trials    |
+| Subscription | GET    | /subscriptions/admin/trials/expired             | ✅🔒 | Get expired trials     |
+| Subscription | GET    | /subscriptions/admin/dashboard/metrics          | ✅🔒 | SaaS metrics           |
+| Billing      | GET    | /billing/:tenantId/summary                      | ✅   | Billing overview       |
+| Billing      | GET    | /billing/:tenantId                              | ✅   | List invoices          |
+| Billing      | POST   | /billing/:tenantId                              | ✅   | Create invoice         |
+| Billing      | GET    | /billing/:tenantId/invoices/:invoiceId          | ✅   | Get invoice            |
+| Billing      | POST   | /billing/:tenantId/invoices/:invoiceId/payments | ✅   | Pay invoice            |
+| Menu         | GET    | /menu/:tenantId                                 | ✅   | List menu              |
+| Menu         | POST   | /menu/:tenantId                                 | ✅   | Add menu item          |
+| Menu         | GET    | /menu/:tenantId/item/:itemId                    | ✅   | Get item               |
+| Menu         | PUT    | /menu/:tenantId/:itemId                         | ✅   | Update item            |
+| Menu         | PATCH  | /menu/:tenantId/:itemId/deactivate              | ✅   | Deactivate item        |
+| Menu         | GET    | /menu/:tenantId/categories                      | ✅   | List categories        |
+| Menu         | GET    | /menu/:tenantId/category/:category              | ✅   | Filter by category     |
+| Order        | POST   | /orders                                         | ✅   | Create order           |
+| Order        | GET    | /orders/:id                                     | ✅   | Get order              |
+| KOT          | GET    | /kot/branch/:branchId                           | ✅   | KOT list               |
+| KOT          | POST   | /kot/:id/print                                  | ✅   | Print KOT              |
+| Inventory    | GET    | /inventory/:tenantId                            | ✅   | List inventory         |
+| Inventory    | POST   | /inventory/:tenantId                            | ✅   | Add item               |
+| Inventory    | PUT    | /inventory/:itemId                              | ✅   | Update item            |
+| Inventory    | DELETE | /inventory/:itemId                              | ✅   | Delete item            |
+| Inventory    | GET    | /inventory/:tenantId/low-stock                  | ✅   | Low stock alert        |
+| Staff        | GET    | /staff/:tenantId                                | ✅   | List staff             |
+| Staff        | POST   | /staff/:tenantId                                | ✅   | Add staff              |
+| Staff        | GET    | /staff/:tenantId/:staffId                       | ✅   | Get staff              |
+| Staff        | PUT    | /staff/:tenantId/:staffId                       | ✅   | Update staff           |
+| Staff        | PATCH  | /staff/:tenantId/:staffId/deactivate            | ✅   | Remove staff           |
+| Staff        | POST   | /staff/:tenantId/:staffId/role                  | ✅   | Assign role            |
+| Staff        | GET    | /staff/:tenantId/branch/:branchId               | ✅   | Branch staff           |
+| Dashboard    | GET    | /dashboard/overview/:tenantId                   | ✅   | Dashboard view         |
+| Dashboard    | GET    | /dashboard/analytics/:tenantId                  | ✅   | Sales analytics        |
+| Dashboard    | GET    | /dashboard/charts/:tenantId                     | ✅   | Charts data            |
+| Dashboard    | GET    | /dashboard/top-products/:tenantId               | ✅   | Top items              |
+| Report       | GET    | /report/sales/:tenantId                         | ✅   | Sales report           |
+| Report       | GET    | /report/inventory/:tenantId                     | ✅   | Inventory report       |
+| Report       | GET    | /report/staff/:tenantId                         | ✅   | Staff report           |
+| Report       | GET    | /report/payment/:tenantId                       | ✅   | Payment report         |
+| Report       | GET    | /report/dashboard/:tenantId                     | ✅   | Summary report         |
+| Report       | POST   | /report/export/sales/:tenantId                  | ✅   | Export sales           |
+| Booking      | POST   | /bookings                                       | ✅   | Create booking         |
+| Booking      | GET    | /bookings/branch/:branchId                      | ✅   | List bookings          |
+| Upload       | POST   | /upload/bulk                                    | ✅   | Bulk import            |
 
 **Legend:** ✅ = Authentication Required | 🔒 = Super Admin Only
 
@@ -1090,27 +1174,32 @@ Based on controllers and services:
 ## KEY DESIGN PATTERNS
 
 ### 1. Multi-Tenancy Pattern
+
 - Every endpoint includes `tenantId` parameter
 - Tenant middleware verifies user owns tenant
 - Database queries always filtered by tenant
 - Ensures complete data isolation
 
 ### 2. Soft Deletes
+
 - Items marked as inactive rather than deleted
 - Maintains audit trail and history
 - Examples: menu items, staff, inventory
 
 ### 3. Status-Based State Machine
+
 - Subscriptions: active → expiring → expired → cancelled
 - Orders: pending → in-progress → ready → completed
 - Invoices: draft → issued → pending → paid/overdue
 
 ### 4. Audit Trail
+
 - Track all state changes
 - Log who made changes and when
 - Important for compliance and disputes
 
 ### 5. Service Layer Architecture
+
 - Controllers only handle HTTP layer
 - Services contain business logic
 - Reusable logic across multiple endpoints
@@ -1121,6 +1210,7 @@ Based on controllers and services:
 ## CONFIGURATION & ENVIRONMENT
 
 Key environment variables needed:
+
 ```
 JWT_SECRET = private key for token signing
 REFRESH_TOKEN_SECRET = key for refresh token signing
@@ -1137,22 +1227,26 @@ NODE_ENV = production/development
 ## NEXT STEPS FOR PRODUCTION
 
 1. **Authentication Enhancements**
+
    - Add MFA (2FA) support
    - Implement token blacklisting/revocation
    - Add password reset flow
    - Account lockout after failed attempts
 
 2. **Payment Integration**
+
    - Integrate Stripe/Razorpay for automatic billing
    - Implement webhook handlers for payment status
    - Add PCI compliance for card handling
 
 3. **Monitoring & Alerts**
+
    - Add logging and alerting for failed payments
    - Monitor subscription expiry and send reminders
    - Alert on low inventory
 
 4. **Advanced Features**
+
    - Multi-branch support
    - Advanced analytics and business intelligence
    - Integration with accounting software
