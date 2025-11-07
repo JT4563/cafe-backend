@@ -18,6 +18,12 @@ router.post(
   TenantController.createTenant
 );
 
+// GET /api/v1/tenants - list all tenants
+router.get(
+  "/",
+  TenantController.getAllTenants
+);
+
 // GET /api/v1/tenants/:id
 router.get(
   "/:id",
