@@ -130,7 +130,7 @@ Status code should be 2xx for success, 4xx/5xx for errors
 
 ```json
 {
-  "refreshToken": "{{refreshToken}}"
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWhkdXZhZnkwMDAzamp2YW13cG9lenNpIiwiaWF0IjoxNzYyNDkxNDkwLCJleHAiOjE3NjMwOTYyOTB9.WZ7V1FZnehXlRu3iTDp6LgGB8inNl9nWm6p5Vl9TD3Y"
 }
 ```
 
