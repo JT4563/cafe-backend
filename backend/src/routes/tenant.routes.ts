@@ -1,5 +1,6 @@
 import { Router } from "express";
 import TenantController from "../controllers/tenant.controller";
+import authMiddleware from "../middlewares/auth.middleware";
 import {
   validateRequest,
   validateParams,
@@ -11,22 +12,21 @@ import {
 
 const router = Router();
 
-// POST /api/v1/tenants - create tenant (owner signup)
+// POST /api/v1/tenants - create tenant (requires auth)
 router.post(
   "/",
+  authMiddleware,
   validateRequest(createTenantSchema),
   TenantController.createTenant
 );
 
-// GET /api/v1/tenants - list all tenants
-router.get(
-  "/",
-  TenantController.getAllTenants
-);
+// GET /api/v1/tenants - list all tenants (requires auth)
+router.get("/", authMiddleware, TenantController.getAllTenants);
 
-// GET /api/v1/tenants/:id
+// GET /api/v1/tenants/:id (requires auth)
 router.get(
   "/:id",
+  authMiddleware,
   validateParams(tenantIdParamSchema),
   TenantController.getTenant
 );
