@@ -307,7 +307,7 @@ export const getAllSubscriptions = async (
   return successResponse(res, result, "Subscriptions fetched");
 };
 ```
-
+ 
 ### Where Tenant Check Happens:
 
 ```typescript
